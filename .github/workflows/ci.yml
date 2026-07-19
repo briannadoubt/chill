@@ -249,7 +249,7 @@ jobs:
           sdkmanager_path="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
           test -x "$sdkmanager_path"
           yes | "$sdkmanager_path" --licenses >/dev/null || true
-          "$sdkmanager_path" "platforms;android-37" "build-tools;37.0.0"
+          "$sdkmanager_path" --channel=3 "platforms;android-37.0" "build-tools;37.0.0"
 
       - name: Verify Android SDK
         working-directory: sdk/android
