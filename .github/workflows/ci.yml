@@ -148,7 +148,7 @@ jobs:
   backend-image:
     name: Backend OCI image
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -163,6 +163,7 @@ jobs:
           file: backend/Dockerfile
           push: false
           tags: chill/backend:ci
+          build-args: CARGO_BUILD_JOBS=2
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
