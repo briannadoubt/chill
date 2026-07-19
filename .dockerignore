@@ -7,6 +7,12 @@
 !schemas/behavior/
 !schemas/behavior/v1/
 !schemas/behavior/v1/envelope.schema.json
+!console/
+!console/**
+!LICENSE
+!NOTICE
 backend/target
 backend/**/target
 backend/testdata
+console/dist
+console/node_modules
