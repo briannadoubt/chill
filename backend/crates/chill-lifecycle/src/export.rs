@@ -10,7 +10,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest as _, Sha256};
-use sqlx::types::Json;
+use sqlx::{Postgres, Transaction, types::Json};
 use thiserror::Error;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use uuid::Uuid;
@@ -517,6 +517,7 @@ impl Exporter {
         request: &ExportRequest,
     ) -> Result<(Vec<SourceFile>, Vec<PolicyRecord>, Vec<AuditRecord>), ExportError> {
         let mut transaction = self.control.begin_tenant(&request.organization_id).await?;
+        ensure_no_uncommitted_matching_records(&mut transaction, request).await?;
         let limit = i64::try_from(self.configuration.maximum_files)
             .map_err(|_| ExportError::InvalidConfiguration)?
             .saturating_add(1);
@@ -705,6 +706,79 @@ fn same_request(request: &ExportRequest, row: &RequestRow, digest: Option<&[u8; 
         && row.5.as_deref() == digest.map(<[u8; 32]>::as_slice)
         && row.6 == request.requested_by
         && row.7 == request.reason_code
+}
+
+async fn ensure_no_uncommitted_matching_records(
+    transaction: &mut Transaction<'_, Postgres>,
+    request: &ExportRequest,
+) -> Result<(), ExportError> {
+    let uncommitted: i64 = match request.kind {
+        ExportKind::Tenant => {
+            sqlx::query_scalar(
+                r"SELECT count(*) FROM ingest.canonical_envelopes AS envelope
+              WHERE envelope.organization_id=$1::uuid AND NOT EXISTS (
+                SELECT 1 FROM lake.batch_records AS member
+                JOIN lake.export_batches AS batch
+                  ON batch.batch_id=member.batch_id
+                 AND batch.organization_id=member.organization_id
+                 AND batch.project_id=member.project_id
+                 AND batch.environment_id=member.environment_id
+                WHERE member.canonical_envelope_id=envelope.id
+                  AND member.organization_id=envelope.organization_id
+                  AND member.project_id=envelope.project_id
+                  AND member.environment_id=envelope.environment_id
+                  AND batch.status='committed')",
+            )
+            .bind(&request.organization_id)
+            .fetch_one(&mut **transaction)
+            .await?
+        }
+        ExportKind::DataSubject => {
+            let target_column = export_target_column(request.target_kind.ok_or(
+                ExportError::InvalidRequest("subject export target kind is required"),
+            )?);
+            let query = format!(
+                r"SELECT count(*) FROM ingest.canonical_envelopes AS envelope
+                  WHERE envelope.organization_id=$1::uuid
+                    AND envelope.project_id=$2::uuid
+                    AND envelope.environment_id=$3::uuid
+                    AND envelope.{target_column}=$4
+                    AND NOT EXISTS (
+                      SELECT 1 FROM lake.batch_records AS member
+                      JOIN lake.export_batches AS batch
+                        ON batch.batch_id=member.batch_id
+                       AND batch.organization_id=member.organization_id
+                       AND batch.project_id=member.project_id
+                       AND batch.environment_id=member.environment_id
+                      WHERE member.canonical_envelope_id=envelope.id
+                        AND member.organization_id=envelope.organization_id
+                        AND member.project_id=envelope.project_id
+                        AND member.environment_id=envelope.environment_id
+                        AND batch.status='committed')"
+            );
+            sqlx::query_scalar(sqlx::AssertSqlSafe(query.as_str()))
+                .bind(&request.organization_id)
+                .bind(&request.project_id)
+                .bind(&request.environment_id)
+                .bind(&request.target_value)
+                .fetch_one(&mut **transaction)
+                .await?
+        }
+    };
+    if uncommitted != 0 {
+        return Err(ExportError::State(format!(
+            "{uncommitted} matching canonical records are not yet committed to the lake"
+        )));
+    }
+    Ok(())
+}
+
+const fn export_target_column(target: ExportTargetKind) -> &'static str {
+    match target {
+        ExportTargetKind::InstallationId => "installation_id",
+        ExportTargetKind::SessionId => "session_id",
+        ExportTargetKind::ReplayId => "replay_id",
+    }
 }
 
 fn build_archive(

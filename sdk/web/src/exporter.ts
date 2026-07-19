@@ -33,9 +33,11 @@ function flatten(record: BehaviorRecord): Array<{ key: string; value: Record<str
 
 export class OtlpExporter {
   constructor(private readonly endpoint: string, private readonly sdkKey: string, private readonly fetcher: typeof fetch = fetch) {}
-  async export(records: readonly BehaviorRecord[]): Promise<void> {
+  async export(records: readonly BehaviorRecord[], signal?: AbortSignal): Promise<void> {
     const payload = { resourceLogs: [{ resource: { attributes: [{ key: "service.name", value: { stringValue: "browser" } }, { key: "os.type", value: { stringValue: "web" } }] }, scopeLogs: [{ scope: { name: "dev.chill.web", version: "0.1.0" }, logRecords: records.map(record => ({ timeUnixNano: record.clock.wall_unix_nano, observedTimeUnixNano: record.clock.wall_unix_nano, eventName: record.name, traceId: record.trace?.traceId, spanId: record.trace?.spanId, flags: record.trace?.sampled ? 1 : 0, attributes: flatten(record) })) }] }] };
-    const response = await this.fetcher(new URL("/v1/logs", this.endpoint), { method: "POST", headers: { "authorization": `Bearer ${this.sdkKey}`, "content-type": "application/json", "x-chill-schema-version": "1.0.0" }, body: JSON.stringify(payload), keepalive: true });
+    const init: RequestInit = { method: "POST", headers: { "authorization": `Bearer ${this.sdkKey}`, "content-type": "application/json", "x-chill-schema-version": "1.0.0" }, body: JSON.stringify(payload), keepalive: true };
+    if (signal) init.signal = signal;
+    const response = await this.fetcher(new URL("/v1/logs", this.endpoint), init);
     if (!response.ok) throw new Error(`Chill export failed with HTTP ${response.status}`);
   }
 }

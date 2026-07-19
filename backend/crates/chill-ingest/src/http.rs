@@ -65,6 +65,10 @@ async fn replay(State(state): State<HttpState>, request: Request) -> Response {
         Err(error) => return error_response(PayloadFormat::Json, error),
     };
     let idempotency_key = header_text(&parts.headers, "idempotency-key").unwrap_or_default();
+    let permit = match state.service.try_admit() {
+        Ok(value) => value,
+        Err(error) => return error_response(PayloadFormat::Json, error),
+    };
     let payload = match bounded_body(body, &parts.headers, state.limits.maximum_replay_bytes).await
     {
         Ok(value) => value,
@@ -72,14 +76,17 @@ async fn replay(State(state): State<HttpState>, request: Request) -> Response {
     };
     match state
         .service
-        .accept(Candidate {
-            kind: SignalKind::Replay,
-            format: PayloadFormat::ReplayV1,
-            payload,
-            credential,
-            idempotency_key,
-            replay: Some(metadata),
-        })
+        .accept_admitted(
+            Candidate {
+                kind: SignalKind::Replay,
+                format: PayloadFormat::ReplayV1,
+                payload,
+                credential,
+                idempotency_key,
+                replay: Some(metadata),
+            },
+            permit,
+        )
         .await
     {
         Ok(receipt) => replay_success(&receipt),
@@ -98,6 +105,10 @@ async fn otlp(state: HttpState, request: Request, kind: SignalKind) -> Response 
         Err(error) => return error_response(format, error),
     };
     let idempotency_key = header_text(&parts.headers, "idempotency-key").unwrap_or_default();
+    let permit = match state.service.try_admit() {
+        Ok(value) => value,
+        Err(error) => return error_response(format, error),
+    };
     let payload = match bounded_body(body, &parts.headers, state.limits.maximum_payload_bytes).await
     {
         Ok(value) => value,
@@ -105,14 +116,17 @@ async fn otlp(state: HttpState, request: Request, kind: SignalKind) -> Response 
     };
     match state
         .service
-        .accept(Candidate {
-            kind,
-            format,
-            payload,
-            credential,
-            idempotency_key,
-            replay: None,
-        })
+        .accept_admitted(
+            Candidate {
+                kind,
+                format,
+                payload,
+                credential,
+                idempotency_key,
+                replay: None,
+            },
+            permit,
+        )
         .await
     {
         Ok(receipt) => success_response(format, &receipt),

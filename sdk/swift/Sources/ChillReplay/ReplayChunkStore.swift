@@ -123,6 +123,10 @@ package final class ReplayChunkStore: @unchecked Sendable {
 
   package func purge() throws {
     for chunk in chunks { try remove(chunk) }
+    try removeReplayFiles(in: directory, extensions: ["chillreplay"])
+    try removeReplayFiles(in: corruptDirectory, extensions: ["corrupt"])
+    chunks.removeAll(keepingCapacity: false)
+    pendingBytes = 0
   }
 
   private func recover() throws {
@@ -235,6 +239,20 @@ package final class ReplayChunkStore: @unchecked Sendable {
       try fileManager.moveItem(at: file, to: destination)
     } catch {
       try? fileManager.removeItem(at: file)
+    }
+  }
+
+  private func removeReplayFiles(
+    in directory: URL,
+    extensions allowedExtensions: Set<String>
+  ) throws {
+    let files = try fileManager.contentsOfDirectory(
+      at: directory,
+      includingPropertiesForKeys: [.isRegularFileKey],
+      options: [.skipsHiddenFiles]
+    )
+    for file in files where allowedExtensions.contains(file.pathExtension) {
+      try fileManager.removeItem(at: file)
     }
   }
 

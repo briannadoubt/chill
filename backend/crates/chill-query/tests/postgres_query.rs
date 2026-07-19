@@ -146,7 +146,9 @@ async fn tenant_query_materializes_executes_and_caches() -> Result<()> {
     let mut wrong_scope = scope;
     wrong_scope.organization_id = "00000000-0000-4000-8000-000000000000".to_owned();
     assert!(matches!(
-        Catalog::new(control).resolve(&wrong_scope, &plan).await,
+        Catalog::new(control)
+            .resolve(&wrong_scope, &plan, 1_000, 1 << 30)
+            .await,
         Err(CatalogError::ScopeNotFound)
     ));
     sqlx::query("DELETE FROM lake.export_batches WHERE organization_id=$1::uuid")

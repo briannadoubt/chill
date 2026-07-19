@@ -24,8 +24,11 @@ docker compose --env-file .env -f compose.yml up -d --build
 `init-secrets.sh` creates mode-0600 secret files and refuses to replace an
 existing secret set. Keep `.secrets/` out of source control and copy it to
 separate encrypted backup storage. In particular, losing `key_pepper` makes
-existing SDK keys unusable. The generated PostgreSQL and MinIO passwords should
-also be retained for fresh-host recovery.
+existing SDK keys unusable. The generated PostgreSQL and MinIO root passwords
+should also be retained for fresh-host recovery. `chilld` does not receive the
+MinIO root identity; `minio-init` creates a separate bucket-scoped runtime S3
+credential in `.secrets/s3_credentials` for normal object reads, writes,
+version listing, and deletion inside the `chill` bucket only.
 
 Create the first organization by mounting the canonical schema into the admin
 container. The SDK key is printed exactly once:

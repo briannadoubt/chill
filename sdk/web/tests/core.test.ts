@@ -19,9 +19,9 @@ test("consent gates capture and flushes OTLP without payload text", async () => 
   assert.match(body, /message\.send/); assert.doesNotMatch(body, /entered_text/);
 });
 
-test("OTLP projection includes canonical web source, privacy, page, and annotation attributes", async () => {
+test("OTLP projection includes canonical web source, privacy, page, and allowlisted annotation attributes", async () => {
   let body = "";
-  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "unknown", installationId: "12345678-1234-4234-8234-123456789abc", fetch: async (_input, init) => { body = String(init?.body); return new Response(null, { status: 200 }); } });
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "unknown", installationId: "12345678-1234-4234-8234-123456789abc", allowedAnnotationKeys: ["app.area"], fetch: async (_input, init) => { body = String(init?.body); return new Response(null, { status: 200 }); } });
   client.setContext(AnnotationContext.empty().with(annotationKey("app.area"), "console"));
   client.setConsent("granted"); client.startPage("overview"); client.event("console.open", { event_class: "lifecycle", emission: "observed" });
   assert.equal(await client.flush(), 3);
@@ -38,6 +38,38 @@ test("OTLP projection includes canonical web source, privacy, page, and annotati
   assert.ok(attributes.has("chill.privacy.annotation_classification.app.area"));
   const eventAttributes = new Map(records.at(-1)!.attributes.map(attribute => [attribute.key, attribute.value] as const));
   assert.deepEqual(eventAttributes.get("chill.record.id"), eventAttributes.get("chill.subject.id"));
+});
+
+test("browser privacy policy is default-deny before durable buffering", async () => {
+  const dom = new JSDOM("", { url: "https://app.example/path?token=secret#frag" });
+  Object.defineProperty(globalThis, "location", { configurable: true, value: dom.window.location });
+  const storage = dom.window.localStorage;
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "granted", storage, fetch: async () => new Response(null, { status: 200 }) });
+  client.setContext(AnnotationContext.empty().with(annotationKey("app.area"), "checkout"));
+  client.event("checkout.submit", { email: "cat@example.test", allowed: "nope" });
+  const records = JSON.parse(storage.getItem("chill.buffer.v1") ?? "[]") as Array<{ source: { page_url: string }; annotations: Record<string, unknown>; payload: Record<string, unknown> }>;
+  const record = records.at(-1)!;
+  assert.equal(record.source.page_url, "https://app.example/path");
+  assert.deepEqual(record.annotations, {});
+  assert.deepEqual(record.payload, {});
+});
+
+test("consent denial aborts an in-flight browser upload and clears the queue", async () => {
+  const dom = new JSDOM("", { url: "https://app.example/path" });
+  const storage = dom.window.localStorage;
+  let signal: AbortSignal | undefined;
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "granted", storage, fetch: async (_input, init) => {
+    signal = init?.signal ?? undefined;
+    await new Promise((_resolve, reject) => signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")), { once: true }));
+    return new Response(null, { status: 200 });
+  } });
+  client.event("checkout.submit");
+  const flushing = client.flush();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  client.setConsent("denied");
+  assert.equal(await flushing, 0);
+  assert.equal(signal?.aborted, true);
+  assert.equal(storage.getItem("chill.buffer.v1"), "[]");
 });
 
 test("activity wrapper preserves return and records failure", async () => {
