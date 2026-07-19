@@ -5,7 +5,16 @@ use serde_json::Value;
 use sqlx::{PgPool, types::Json};
 use tracing::{error, info, warn};
 
-type ClaimedAlert = (String, String, String, String, Json<Plan>, String, f64, i32);
+type ClaimedAlert = (
+    String,
+    String,
+    String,
+    String,
+    Json<Value>,
+    String,
+    f64,
+    i32,
+);
 
 pub(crate) async fn run(database: PgPool, query: Arc<QueryService>) {
     let mut interval = tokio::time::interval(Duration::from_mins(1));
@@ -29,6 +38,27 @@ async fn evaluate_due(database: &PgPool, query: &QueryService) -> anyhow::Result
     for (id, organization_id, project_id, environment_id, Json(plan), operator, threshold, _) in
         alerts
     {
+        let plan: Plan = match serde_json::from_value(plan) {
+            Ok(value) => value,
+            Err(cause) => {
+                warn!(alert_id = %id, %cause, "scheduled analytics alert plan is malformed");
+                let completed = sqlx::query_scalar::<_, bool>(
+                    "SELECT product.complete_alert_evaluation($1::uuid,$2,$3)",
+                )
+                .bind(&id)
+                .bind(0.0_f64)
+                .bind("error")
+                .fetch_one(database)
+                .await?;
+                if !completed {
+                    warn!(
+                        alert_id = %id,
+                        "malformed scheduled analytics alert was no longer active at completion"
+                    );
+                }
+                continue;
+            }
+        };
         let scope = Scope {
             organization_id,
             project_id,

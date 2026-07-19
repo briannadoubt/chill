@@ -4,7 +4,7 @@ use chill_control_plane::{AuthenticatedSDKKey, ControlPlaneError, Store};
 use serde_json::json;
 use sqlx::{Postgres, Transaction, types::Json};
 use time::OffsetDateTime;
-use tokio::sync::Semaphore;
+use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 
 use crate::{
     AdmissionError, Candidate, ErrorCode, Limits, Receipt, SignalKind, ValidatedRequest,
@@ -17,6 +17,12 @@ pub struct Service {
     control: Store,
     limits: Limits,
     slots: Arc<Semaphore>,
+}
+
+/// Process-level admission held while untrusted request work is performed.
+#[derive(Clone)]
+pub(crate) struct AdmissionPermit {
+    _permit: Arc<OwnedSemaphorePermit>,
 }
 
 impl Service {
@@ -41,13 +47,32 @@ impl Service {
     /// Returns stable admission errors for validation, authorization, quota,
     /// backpressure, idempotency conflict, or transient dependency failure.
     pub async fn accept(&self, candidate: Candidate) -> Result<Receipt, AdmissionError> {
-        let _permit = self.slots.try_acquire().map_err(|_| {
+        let permit = self.try_admit()?;
+        self.accept_admitted(candidate, permit).await
+    }
+
+    pub(crate) fn limits(&self) -> Limits {
+        self.limits
+    }
+
+    pub(crate) fn try_admit(&self) -> Result<AdmissionPermit, AdmissionError> {
+        let permit = self.slots.clone().try_acquire_owned().map_err(|_| {
             AdmissionError::retry(
                 ErrorCode::Backpressure,
                 "ingestion concurrency is saturated",
                 Duration::from_secs(1),
             )
         })?;
+        Ok(AdmissionPermit {
+            _permit: Arc::new(permit),
+        })
+    }
+
+    pub(crate) async fn accept_admitted(
+        &self,
+        candidate: Candidate,
+        _permit: AdmissionPermit,
+    ) -> Result<Receipt, AdmissionError> {
         let credential = candidate.credential.clone();
         let request = validate_candidate(candidate, self.limits)?;
         let key = self
