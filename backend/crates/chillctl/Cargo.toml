@@ -1,0 +1,31 @@
+[package]
+name = "chillctl"
+description = "Administrative CLI for the Chill server"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+base64.workspace = true
+chill-control-plane = { path = "../chill-control-plane" }
+chill-lake = { path = "../chill-lake" }
+chill-lifecycle = { path = "../chill-lifecycle" }
+chill-migrations = { path = "../chill-migrations" }
+chill-objects = { path = "../chill-objects" }
+chill-query = { path = "../chill-query" }
+clap.workspace = true
+hex.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+sqlx.workspace = true
+time.workspace = true
+tokio.workspace = true
+uuid.workspace = true
+
+[lints]
+workspace = true

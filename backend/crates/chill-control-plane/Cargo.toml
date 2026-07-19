@@ -1,0 +1,35 @@
+[package]
+name = "chill-control-plane"
+description = "Tenant-safe control plane for the Chill server"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+axum.workspace = true
+base64.workspace = true
+getrandom.workspace = true
+hex.workspace = true
+hmac.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+sqlx = { workspace = true, features = ["json", "time", "uuid"] }
+subtle.workspace = true
+thiserror.workspace = true
+time.workspace = true
+tokio.workspace = true
+uuid.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+anyhow.workspace = true
+chill-migrations = { path = "../chill-migrations" }
+http-body-util.workspace = true
+tokio.workspace = true
+tower.workspace = true

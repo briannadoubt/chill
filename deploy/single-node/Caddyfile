@@ -1,0 +1,41 @@
+{
+	admin off
+	servers {
+		protocols h1 h2 h2c
+	}
+}
+
+{$CHILL_DOMAIN:localhost} {
+	encode zstd gzip
+
+	request_body {
+		max_size 20MB
+	}
+
+	@private path /metrics
+	respond @private 404
+
+	handle_path /console* {
+		reverse_proxy console:8080
+	}
+
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+	}
+
+	handle {
+		reverse_proxy chilld:4318 {
+		transport http {
+			versions h2c 2
+		}
+		}
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

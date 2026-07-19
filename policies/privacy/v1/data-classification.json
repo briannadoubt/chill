@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "classifications": {
+    "public": {
+      "annotation_eligible": true,
+      "description": "Intentionally public, non-user-specific product metadata."
+    },
+    "internal": {
+      "annotation_eligible": true,
+      "description": "Non-personal operational or product metadata restricted to the tenant."
+    },
+    "pseudonymous_identifier": {
+      "annotation_eligible": true,
+      "description": "A scoped opaque identifier that cannot directly identify a person."
+    },
+    "personal_data": {
+      "annotation_eligible": true,
+      "description": "Data about a person that requires purpose, consent, retention, export, and deletion controls."
+    },
+    "sensitive_data": {
+      "annotation_eligible": false,
+      "description": "High-risk personal or user-authored content that cannot be safely serialized as an annotation."
+    },
+    "secret": {
+      "annotation_eligible": false,
+      "description": "Confidential application material that must never enter telemetry."
+    },
+    "credential": {
+      "annotation_eligible": false,
+      "description": "Authentication or authorization material that must never enter telemetry."
+    }
+  },
+  "source_categories": {
+    "identifiers": {
+      "classification": "pseudonymous_identifier",
+      "default_disposition": "omit",
+      "allowlist_required": true,
+      "examples": ["installation_id", "session_id", "opaque account key"]
+    },
+    "content": {
+      "classification": "sensitive_data",
+      "default_disposition": "omit",
+      "allowlist_required": true,
+      "examples": ["user-authored text", "document content", "media"]
+    },
+    "text": {
+      "classification": "sensitive_data",
+      "default_disposition": "mask",
+      "allowlist_required": true,
+      "examples": ["labels", "form values", "accessibility text"]
+    },
+    "network_fields": {
+      "classification": "sensitive_data",
+      "default_disposition": "omit",
+      "allowlist_required": true,
+      "examples": ["URL path", "query", "headers", "request or response body"]
+    },
+    "device_data": {
+      "classification": "pseudonymous_identifier",
+      "default_disposition": "omit",
+      "allowlist_required": true,
+      "examples": ["vendor identifier", "device name", "advertising identifier"]
+    },
+    "custom_annotations": {
+      "classification": "internal",
+      "default_disposition": "omit",
+      "allowlist_required": true,
+      "examples": ["account.tier", "cat.id", "release.channel"]
+    },
+    "secrets": {
+      "classification": "secret",
+      "default_disposition": "omit",
+      "allowlist_required": false,
+      "examples": ["encryption key", "private configuration", "signing material"]
+    },
+    "credentials": {
+      "classification": "credential",
+      "default_disposition": "omit",
+      "allowlist_required": false,
+      "examples": ["password", "session cookie", "authorization header", "API key"]
+    }
+  },
+  "non_overridable_rules": {
+    "secure_input": "mask",
+    "clipboard": "mask",
+    "credentials": "omit",
+    "secrets": "omit",
+    "replay_masking_stage": "before_buffer"
+  }
+}

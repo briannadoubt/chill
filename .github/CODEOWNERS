@@ -1,0 +1,16 @@
+# The project is maintainer-led. Add team aliases as maintainership grows.
+* @briannadoubt
+
+/.github/ @briannadoubt
+/ci/ @briannadoubt
+/contracts/ @briannadoubt
+/schemas/ @briannadoubt
+/policies/ @briannadoubt
+/conformance/ @briannadoubt
+/backend/ @briannadoubt
+/deploy/ @briannadoubt
+/console/ @briannadoubt
+/sdk/android/ @briannadoubt
+/sdk/swift/ @briannadoubt
+/sdk/web/ @briannadoubt
+/validation/apple/ @briannadoubt

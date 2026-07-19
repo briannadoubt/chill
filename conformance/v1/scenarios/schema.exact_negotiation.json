@@ -1,0 +1,29 @@
+{
+  "suite_version": "1.0.0",
+  "id": "schema.exact_negotiation",
+  "domain": "schema",
+  "layers": ["model", "adapter", "wire"],
+  "description": "A schema version and URL are an exact pair; unsupported versions are never coerced.",
+  "given": {
+    "supported": {
+      "1.0.0": "https://schemas.chill.dev/behavior/v1.0.0",
+      "1.1.0": "https://schemas.chill.dev/behavior/v1.1.0"
+    },
+    "requests": [
+      {"case": "exact", "schema_version": "1.1.0", "schema_url": "https://schemas.chill.dev/behavior/v1.1.0"},
+      {"case": "wrong_url", "schema_version": "1.1.0", "schema_url": "https://schemas.chill.dev/behavior/v1.0.0"},
+      {"case": "unsupported_minor", "schema_version": "1.2.0", "schema_url": "https://schemas.chill.dev/behavior/v1.2.0"},
+      {"case": "unsupported_major", "schema_version": "2.0.0", "schema_url": "https://schemas.chill.dev/behavior/v2.0.0"},
+      {"case": "invalid", "schema_version": "v1", "schema_url": "https://schemas.chill.dev/behavior/v1"}
+    ]
+  },
+  "expect": {
+    "results": [
+      {"case": "exact", "accepted": true, "reason": "accepted_exact", "negotiated_version": "1.1.0"},
+      {"case": "wrong_url", "accepted": false, "reason": "schema_url_mismatch", "negotiated_version": null},
+      {"case": "unsupported_minor", "accepted": false, "reason": "unsupported_version", "negotiated_version": null},
+      {"case": "unsupported_major", "accepted": false, "reason": "unsupported_major", "negotiated_version": null},
+      {"case": "invalid", "accepted": false, "reason": "invalid_version", "negotiated_version": null}
+    ]
+  }
+}

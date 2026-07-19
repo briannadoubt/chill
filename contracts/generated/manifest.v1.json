@@ -1,0 +1,231 @@
+{
+  "contract_version": "1.0.0",
+  "files": [
+    {
+      "bytes": 32773,
+      "path": "budgets/sdk/v1/budgets.json",
+      "sha256": "73f5652baba509cefb19da31e9976270e39c34e46a3389d95d5c8bbd249ac48d"
+    },
+    {
+      "bytes": 2677,
+      "path": "conformance/v1/manifest.json",
+      "sha256": "b3a2bb07936dee381005c62a3f7c2fa39bc8b02cb7a9a283218b36769190e0da"
+    },
+    {
+      "bytes": 2033,
+      "path": "conformance/v1/scenarios/actions.semantic_dedup.json",
+      "sha256": "2b5523c6112afbb96c68e6a52584495f1cae2bb0e6068c95ac73b886db5fba7d"
+    },
+    {
+      "bytes": 2246,
+      "path": "conformance/v1/scenarios/annotations.outer_first.json",
+      "sha256": "18e344c22922b4b77997f98279c9707cbb3901ffdc37458386411d9240bc5b07"
+    },
+    {
+      "bytes": 3089,
+      "path": "conformance/v1/scenarios/navigation.stack_sheet.json",
+      "sha256": "8b5e2b404e527522ebe4280f17b786974e6860afd4eb35c204f4a568fd1f612f"
+    },
+    {
+      "bytes": 1727,
+      "path": "conformance/v1/scenarios/offline.at_least_once_recovery.json",
+      "sha256": "0eeae793a2d706a8012c5fd236943ea9b957d2a5ea4aa26e30a493cc08ec3e0e"
+    },
+    {
+      "bytes": 2493,
+      "path": "conformance/v1/scenarios/redaction.source_masking.json",
+      "sha256": "48faaf013f183d1c5d9f2815f9681aa0bd0117a9dd9fd1f484df3ac7fe4ff8da"
+    },
+    {
+      "bytes": 1318,
+      "path": "conformance/v1/scenarios/replay.monotonic_alignment.json",
+      "sha256": "e2a69f3a72d9ab6c044e9121fbe655c1965698234abbefd9f81e2b5e0384984c"
+    },
+    {
+      "bytes": 1351,
+      "path": "conformance/v1/scenarios/sampling.independent_streams.json",
+      "sha256": "224ff9c3d35fd83754268e5563e08f14f581e80c821e75d75c01b7cf77690e1e"
+    },
+    {
+      "bytes": 1586,
+      "path": "conformance/v1/scenarios/schema.exact_negotiation.json",
+      "sha256": "da00876078c170e7f6a0c46af64f54e7743892c57605b603ab686320b8ce2a70"
+    },
+    {
+      "bytes": 2936,
+      "path": "conformance/v1/scenarios/trace.first_party_propagation.json",
+      "sha256": "0d6fd78788c985b3c9527f8eeddbc56bb0b152d0a502658d5f135001845b9e21"
+    },
+    {
+      "bytes": 68,
+      "path": "contracts/__init__.py",
+      "sha256": "4d2553314452d41b2a57d6e2029e29e54038977cab02cbf294c755167eb28679"
+    },
+    {
+      "bytes": 36,
+      "path": "contracts/annotations/__init__.py",
+      "sha256": "97647392ce99b44bea284ac5d2e6508e0a1da000d412c12cc690050924f19e10"
+    },
+    {
+      "bytes": 387,
+      "path": "contracts/annotations/v1/__init__.py",
+      "sha256": "f166815825966ee380c1fce9fc22779102c6ea24d201e1798cbde9dd449db011"
+    },
+    {
+      "bytes": 4669,
+      "path": "contracts/annotations/v1/reference.py",
+      "sha256": "dec5af85bdec59de56b111af15b8859216dc230cd808538c429b9b159e22fa27"
+    },
+    {
+      "bytes": 52,
+      "path": "contracts/budgets/__init__.py",
+      "sha256": "a7789c065806ff8f5128b4c1729e29d68851a02537ca486af7a69b6b0173687b"
+    },
+    {
+      "bytes": 477,
+      "path": "contracts/budgets/v1/__init__.py",
+      "sha256": "74bcd109154e9cf24f78d7bb7908e70891b021cd8cf16cd7f6d26cc0545394d4"
+    },
+    {
+      "bytes": 16217,
+      "path": "contracts/budgets/v1/reference.py",
+      "sha256": "6dea72534dd981b5cd310950b4d7b16fe4b73a6e3cb6747aa77e923591ff2107"
+    },
+    {
+      "bytes": 48,
+      "path": "contracts/conformance/__init__.py",
+      "sha256": "fac040a7ef1a93df2bb6fd5d693f4a214f40025a60823e79efaeda2688faad94"
+    },
+    {
+      "bytes": 533,
+      "path": "contracts/conformance/v1/__init__.py",
+      "sha256": "05aebbb5d156d9da6f1d04e750253e98250385dbff416a104d4083eb2937c9e7"
+    },
+    {
+      "bytes": 28244,
+      "path": "contracts/conformance/v1/reference.py",
+      "sha256": "a3606b9a7ac4ef9dafc7d4ba6732dbeaf8d6bf5ffd2c1eae51096ba7837261b6"
+    },
+    {
+      "bytes": 63,
+      "path": "contracts/instrumentation/__init__.py",
+      "sha256": "5057db32390861741f996acede1527ee5b429f7a3a2643fd382b0bb235476e5a"
+    },
+    {
+      "bytes": 882,
+      "path": "contracts/instrumentation/v1/__init__.py",
+      "sha256": "0d508cea277e8fe63e0e2dcbcc9f94f173056c5f4c35aae46384980474ed266d"
+    },
+    {
+      "bytes": 15801,
+      "path": "contracts/instrumentation/v1/reference.py",
+      "sha256": "2280620c9201b489ba3977ec05f34af7a3a37cfa45fb69db447516878c7649ea"
+    },
+    {
+      "bytes": 46,
+      "path": "contracts/navigation/__init__.py",
+      "sha256": "5781755bd27bed50f3542859389c28696954b2c73b833ced25b247a5e0e8a38f"
+    },
+    {
+      "bytes": 623,
+      "path": "contracts/navigation/v1/__init__.py",
+      "sha256": "9274aeead06d0d64d9701e43082904f4a7df59e596df1e7f5b8589cf1f2cca65"
+    },
+    {
+      "bytes": 20109,
+      "path": "contracts/navigation/v1/reference.py",
+      "sha256": "1fbbfff08f54c4831e8381c2dadd8d94ff151994d57acef83cb258544896ba26"
+    },
+    {
+      "bytes": 48,
+      "path": "contracts/otel/__init__.py",
+      "sha256": "c56aa1b1687c6a82bbaed3cc0f30fb715f39ca4bba594bd1d532bc07d16b2943"
+    },
+    {
+      "bytes": 682,
+      "path": "contracts/otel/v1/__init__.py",
+      "sha256": "53584a056c9fed409101b7db755b3a332188897f30ca7b4846f0dd711658dd40"
+    },
+    {
+      "bytes": 26128,
+      "path": "contracts/otel/v1/reference.py",
+      "sha256": "b9efff679d66f2ed5f1e77fe079f62960a858f099dac79f509d2868b45053841"
+    },
+    {
+      "bytes": 2349,
+      "path": "examples/behavior/v1/action-activated.json",
+      "sha256": "2d09f173d61257f1629ee1d84019b951b93720aea21df39a5aff4ed3e407cb89"
+    },
+    {
+      "bytes": 2263,
+      "path": "examples/behavior/v1/activity-ended.json",
+      "sha256": "efd961d127e6020515ea4e53fcbed55c72aa4bfc9bda83d4f9b430b79bdf5655"
+    },
+    {
+      "bytes": 2193,
+      "path": "examples/behavior/v1/activity-started.json",
+      "sha256": "f4bef4171c8258b29d790177480c619c680822e00b05cafb3e59d2672745fc66"
+    },
+    {
+      "bytes": 1577,
+      "path": "examples/behavior/v1/domain-event.json",
+      "sha256": "e355461111b62a86fc16aa422decc097ce4f188d5380bf7f7bcd42b03d930fe8"
+    },
+    {
+      "bytes": 1706,
+      "path": "examples/behavior/v1/element-impression.json",
+      "sha256": "7af4e1b3ed7a9a704876fed2e24b12e2da97098fd5312de41471232804b4283d"
+    },
+    {
+      "bytes": 1338,
+      "path": "examples/behavior/v1/journey-started.json",
+      "sha256": "04b7e241a5dcdba91bbe85fc952bf99fefe4ab05631512908e6dd37d48a4245c"
+    },
+    {
+      "bytes": 2081,
+      "path": "examples/behavior/v1/page-started.json",
+      "sha256": "4e162a86db7b0df8872abdc5a297ea0e644e3bb19c522803f80457257d5145ac"
+    },
+    {
+      "bytes": 2272,
+      "path": "examples/behavior/v1/replay-chunk.json",
+      "sha256": "6ae7f2e19aac242bca1d7a4af1d2ea19f1cf0729fca5c5db4bdcb7bf36bc603a"
+    },
+    {
+      "bytes": 1357,
+      "path": "examples/behavior/v1/session-started.json",
+      "sha256": "fff0aa6db62728b3126ad95acf642cc5abc97cadceb698a911f751a7602aa83d"
+    },
+    {
+      "bytes": 4138,
+      "path": "examples/otlp/v1/action-log.json",
+      "sha256": "92b38af8435e04ce3d0fe53d9eb1cf4b3dd1f8ffab82438c53bacaa76bb2607d"
+    },
+    {
+      "bytes": 2758,
+      "path": "examples/otlp/v1/activity-span.json",
+      "sha256": "4157b68ae324a8b7db3550c84c4f17db31f644ed059f345dd8116a2733cb1808"
+    },
+    {
+      "bytes": 3128,
+      "path": "policies/privacy/v1/data-classification.json",
+      "sha256": "8d1457b5de6ee72c8eb9f1af5bc4d66beb49af2eccc63b9aaca3af52e3d5f6a2"
+    },
+    {
+      "bytes": 657,
+      "path": "policies/privacy/v1/default-environment-policy.json",
+      "sha256": "b04689577a57b7f78eac4a2ea66de7879962be7055bad794c60df6fec2e7b3bb"
+    },
+    {
+      "bytes": 2004,
+      "path": "policies/privacy/v1/environment-policy.schema.json",
+      "sha256": "863927e25e4d36d250b35c21b9ce053609c5d2c09a08d90d17cc1f08fb530b2f"
+    },
+    {
+      "bytes": 17251,
+      "path": "schemas/behavior/v1/envelope.schema.json",
+      "sha256": "cc962f74078751c8dda1562750d261b92ca06914ce0d6bef02066a3eccc5a28b"
+    }
+  ],
+  "format": "chill-contract-integrity-v1"
+}

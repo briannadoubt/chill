@@ -1,0 +1,66 @@
+name: Bug report
+description: Report a reproducible defect in Chill.
+title: "bug: "
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Remove credentials, personal data, tenant
+        identifiers, telemetry contents, and private endpoints. Use the
+        private security channel for vulnerabilities.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Rust backend
+        - Swift SDK
+        - Android SDK
+        - Browser SDK
+        - Console
+        - Contracts and schemas
+        - Deployment and operations
+        - Repository automation
+    validations:
+      required: true
+  - type: input
+    id: revision
+    attributes:
+      label: Version or revision
+      description: Release version or full commit SHA.
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the actual and expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include exact sanitized commands, inputs, and output.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, architecture, and relevant toolchain or service versions.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues and discussions.
+          required: true
+        - label: I removed secrets, personal data, and private infrastructure details.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

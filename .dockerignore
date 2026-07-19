@@ -1,0 +1,12 @@
+**
+!backend/
+!backend/**
+!policies/
+!policies/**
+!schemas/
+!schemas/behavior/
+!schemas/behavior/v1/
+!schemas/behavior/v1/envelope.schema.json
+backend/target
+backend/**/target
+backend/testdata

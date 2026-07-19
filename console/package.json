@@ -1,0 +1,36 @@
+{
+  "name": "@chill/console",
+  "version": "0.1.0",
+  "description": "The client-only administration and analytics console for Chill",
+  "private": true,
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && node scripts/build-sites-worker.mjs",
+    "preview": "vite preview",
+    "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "lint": "eslint .",
+    "vendor:sdk": "npm --prefix ../sdk/web run build && npm pack ../sdk/web --pack-destination vendor"
+  },
+  "dependencies": {
+    "@chill-observability/browser": "file:vendor/chill-observability-browser-0.1.0.tgz",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.4",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.2",
+    "eslint": "9.39.4",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.59.3",
+    "vite": "8.1.5"
+  },
+  "type": "module"
+}

@@ -1,0 +1,39 @@
+[package]
+name = "chill-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+chill-control-plane = { path = "../crates/chill-control-plane" }
+chill-ingest = { path = "../crates/chill-ingest" }
+chill-query = { path = "../crates/chill-query" }
+libfuzzer-sys = "0.4.10"
+serde_json = "1.0.150"
+
+[[bin]]
+name = "credential_parser"
+path = "fuzz_targets/credential_parser.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ingest_candidate"
+path = "fuzz_targets/ingest_candidate.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "query_plan"
+path = "fuzz_targets/query_plan.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
+members = ["."]

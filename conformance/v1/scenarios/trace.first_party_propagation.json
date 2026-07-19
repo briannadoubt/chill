@@ -1,0 +1,98 @@
+{
+  "suite_version": "1.0.0",
+  "id": "trace.first_party_propagation",
+  "domain": "trace",
+  "layers": ["model", "adapter", "wire"],
+  "description": "Trace context crosses trusted origins while baggage is allowlisted and message creation contexts become links.",
+  "given": {
+    "context": {
+      "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+      "span_id": "00f067aa0ba902b7",
+      "trace_flags": 1,
+      "trace_state": "vendor=opaque"
+    },
+    "policy": {
+      "trusted_origins": ["https://api.example.test"],
+      "baggage_allowlist": ["account.id", "tenant.region"]
+    },
+    "baggage": {
+      "account.id": "acct 123",
+      "debug.secret": "never-forward",
+      "tenant.region": "us-west"
+    },
+    "destinations": ["https://api.example.test", "https://third-party.test"],
+    "valid_traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+    "invalid_traceparent": "00-00000000000000000000000000000000-00f067aa0ba902b7-01",
+    "messaging": {
+      "ambient": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "span_id": "00f067aa0ba902b7",
+        "trace_flags": 1
+      },
+      "creation_contexts": [
+        {
+          "trace_id": "11111111111111111111111111111111",
+          "span_id": "1111111111111111",
+          "trace_flags": 0,
+          "remote": true
+        },
+        {
+          "trace_id": "11111111111111111111111111111111",
+          "span_id": "1111111111111111",
+          "trace_flags": 0,
+          "remote": true
+        },
+        {
+          "trace_id": "22222222222222222222222222222222",
+          "span_id": "2222222222222222",
+          "trace_flags": 1,
+          "remote": true
+        }
+      ]
+    }
+  },
+  "expect": {
+    "http_headers": {
+      "https://api.example.test": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        "tracestate": "vendor=opaque",
+        "baggage": "account.id=acct%20123,tenant.region=us-west"
+      },
+      "https://third-party.test": {}
+    },
+    "parsed_valid": {
+      "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+      "span_id": "00f067aa0ba902b7",
+      "trace_flags": 1,
+      "trace_state": null,
+      "remote": true
+    },
+    "parsed_invalid": null,
+    "messaging": {
+      "parent": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "span_id": "00f067aa0ba902b7",
+        "trace_flags": 1,
+        "trace_state": null,
+        "remote": false
+      },
+      "links": [
+        {
+          "trace_id": "11111111111111111111111111111111",
+          "span_id": "1111111111111111",
+          "trace_flags": 0,
+          "trace_state": null,
+          "remote": true
+        },
+        {
+          "trace_id": "22222222222222222222222222222222",
+          "span_id": "2222222222222222",
+          "trace_flags": 1,
+          "trace_state": null,
+          "remote": true
+        }
+      ]
+    }
+  },
+  "forbidden_tokens": ["never-forward"]
+}

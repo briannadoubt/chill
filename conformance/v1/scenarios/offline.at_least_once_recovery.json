@@ -1,0 +1,36 @@
+{
+  "suite_version": "1.0.0",
+  "id": "offline.at_least_once_recovery",
+  "domain": "offline",
+  "layers": ["model", "adapter", "wire"],
+  "description": "Capacity pressure drops replay first, crashes preserve IDs, and only acknowledgements remove records.",
+  "given": {
+    "capacity_bytes": 500,
+    "steps": [
+      {"operation": "enqueue", "record_id": "record-action", "kind": "action", "priority": "high", "bytes": 120},
+      {"operation": "enqueue", "record_id": "record-impression", "kind": "impression", "priority": "low", "bytes": 100},
+      {"operation": "enqueue", "record_id": "record-replay", "kind": "replay", "priority": "replay", "bytes": 200},
+      {"operation": "enqueue", "record_id": "record-event", "kind": "event", "priority": "high", "bytes": 120},
+      {"operation": "crash_recover"},
+      {"operation": "export", "max_records": 2, "result": "failure"},
+      {"operation": "export", "max_records": 2, "result": "ack", "acknowledged_record_ids": ["record-action"]},
+      {"operation": "enqueue", "record_id": "record-activity-end", "kind": "activity", "priority": "high", "bytes": 140}
+    ]
+  },
+  "expect": {
+    "queued": [
+      {"record_id": "record-impression", "kind": "impression", "priority": "low", "bytes": 100},
+      {"record_id": "record-event", "kind": "event", "priority": "high", "bytes": 120},
+      {"record_id": "record-activity-end", "kind": "activity", "priority": "high", "bytes": 140}
+    ],
+    "dropped": [
+      {"record_id": "record-replay", "kind": "replay", "reason": "capacity"}
+    ],
+    "export_attempts": [
+      ["record-action", "record-impression"],
+      ["record-action", "record-impression"]
+    ],
+    "recovery_count": 1,
+    "queued_bytes": 360
+  }
+}

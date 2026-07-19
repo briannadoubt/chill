@@ -1,0 +1,137 @@
+name: ChillPhysicalValidation
+
+options:
+  bundleIdPrefix: dev.chill.validation
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "27.0"
+
+packages:
+  Chill:
+    path: ../../../sdk/swift
+
+settings:
+  base:
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "6.0"
+
+targets:
+  ChillPhysicalCandidate:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    dependencies:
+      - package: Chill
+        product: Chill
+      - package: Chill
+        product: ChillReplay
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.chill.validation.physical.candidate
+        PRODUCT_NAME: Chill Physical Candidate
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) CHILL_CANDIDATE"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Chill Candidate
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        TARGETED_DEVICE_FAMILY: "1"
+
+  ChillPhysicalBaseline:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.chill.validation.physical.baseline
+        PRODUCT_NAME: Chill Physical Baseline
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) CHILL_BASELINE"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Chill Baseline
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        TARGETED_DEVICE_FAMILY: "1"
+
+  ChillPhysicalCandidateUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: ChillPhysicalCandidate
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.chill.validation.physical.candidate-uitests
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) CHILL_CANDIDATE"
+        GENERATE_INFOPLIST_FILE: YES
+
+  ChillPhysicalBaselineUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: ChillPhysicalBaseline
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.chill.validation.physical.baseline-uitests
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) CHILL_BASELINE"
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  ChillPhysicalCandidateValidation:
+    build:
+      targets:
+        ChillPhysicalCandidate: all
+        ChillPhysicalCandidateUITests: [test]
+    test:
+      config: Release
+      gatherCoverageData: false
+      environmentVariables:
+        CHILL_PRIVACY_CANARY: "$(CHILL_PRIVACY_CANARY)"
+        CHILL_RELEASE_DURATION_SECONDS: "$(CHILL_RELEASE_DURATION_SECONDS)"
+        CHILL_RELEASE_WORKLOAD_GATE: "1"
+      targets:
+        - ChillPhysicalCandidateUITests
+
+  ChillPhysicalBaselineValidation:
+    build:
+      targets:
+        ChillPhysicalBaseline: all
+        ChillPhysicalBaselineUITests: [test]
+    test:
+      config: Release
+      gatherCoverageData: false
+      environmentVariables:
+        CHILL_PRIVACY_CANARY: "$(CHILL_PRIVACY_CANARY)"
+        CHILL_RELEASE_DURATION_SECONDS: "$(CHILL_RELEASE_DURATION_SECONDS)"
+        CHILL_RELEASE_WORKLOAD_GATE: "1"
+      targets:
+        - ChillPhysicalBaselineUITests
+
+  ChillPhysicalCandidateLaunch:
+    build:
+      targets:
+        ChillPhysicalCandidate: all
+        ChillPhysicalCandidateUITests: [test]
+    test:
+      config: Release
+      gatherCoverageData: false
+      environmentVariables:
+        CHILL_RELEASE_WORKLOAD_GATE: "1"
+      targets:
+        - ChillPhysicalCandidateUITests
+
+  ChillPhysicalBaselineLaunch:
+    build:
+      targets:
+        ChillPhysicalBaseline: all
+        ChillPhysicalBaselineUITests: [test]
+    test:
+      config: Release
+      gatherCoverageData: false
+      environmentVariables:
+        CHILL_RELEASE_WORKLOAD_GATE: "1"
+      targets:
+        - ChillPhysicalBaselineUITests

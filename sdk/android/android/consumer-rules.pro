@@ -1,0 +1,3 @@
+-keepattributes RuntimeVisibleAnnotations,RuntimeInvisibleAnnotations
+-keep @interface dev.chill.core.ChillActivity
+-keep @interface dev.chill.core.ChillEvent

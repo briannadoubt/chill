@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0.0",
+  "schema_url": "https://schemas.chill.dev/behavior/v1/envelope.schema.json",
+  "record_id": "0190f2a2-2000-7000-8000-000000000015",
+  "subject_id": "0190f2a2-2000-7000-8000-000000000015",
+  "kind": "event",
+  "operation": "instant",
+  "name": "adoption.confirmed",
+  "tenant": {
+    "organization_id": "org_internal",
+    "project_id": "project_chill",
+    "environment_id": "development"
+  },
+  "source": {
+    "platform": "server",
+    "installation_id": "25459671-a130-42e1-a94f-e08089445cbb"
+  },
+  "context": {
+    "session_id": "0190f29f-ff00-7000-8000-000000000001",
+    "journey_id": "0190f2a0-1000-7000-8000-000000000006"
+  },
+  "clock": {
+    "occurred_at_unix_nano": "1721000001200000000",
+    "observed_at_unix_nano": "1721000001201000000",
+    "sequence_number": 88
+  },
+  "trace": {
+    "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+    "span_id": "7b34da6a3ce929d0",
+    "parent_span_id": "a3ce929d0e0e4736",
+    "trace_flags": "01"
+  },
+  "instrumentation": {
+    "name": "dev.chill.server",
+    "version": "0.1.0"
+  },
+  "resource": {
+    "attributes": {
+      "service.name": "adoption.api"
+    }
+  },
+  "annotations": {
+    "cat.id": "cat_12345"
+  },
+  "privacy": {
+    "policy_version": "internal-v1",
+    "capture_class": "analytics",
+    "consent": "granted",
+    "redaction_state": "none",
+    "annotation_classifications": {
+      "cat.id": "pseudonymous_identifier"
+    }
+  },
+  "outcome": {
+    "status": "ok"
+  },
+  "payload": {
+    "event_class": "domain",
+    "severity": "info",
+    "emission": "succeeded"
+  }
+}

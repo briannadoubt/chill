@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and design discussions
+    url: https://github.com/briannadoubt/chill/discussions
+    about: Ask for help or discuss ideas before proposing a large change.
+  - name: Security vulnerability
+    url: https://github.com/briannadoubt/chill/security/advisories/new
+    about: Report security issues privately. Do not open a public issue.

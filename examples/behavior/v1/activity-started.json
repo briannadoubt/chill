@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "schema_url": "https://schemas.chill.dev/behavior/v1/envelope.schema.json",
+  "record_id": "0190f2a1-3001-7000-8000-000000000016",
+  "subject_id": "0190f2a1-3000-7000-8000-000000000005",
+  "kind": "activity",
+  "operation": "start",
+  "name": "adoption.submit",
+  "tenant": {
+    "organization_id": "org_internal",
+    "project_id": "project_chill",
+    "environment_id": "development"
+  },
+  "source": {
+    "platform": "apple",
+    "installation_id": "8c735b90-6f71-4d73-9b16-6a42066f3d31",
+    "process_id": "5f39561f-d38f-43eb-88cf-a60a5799d086",
+    "app_build": "42"
+  },
+  "context": {
+    "session_id": "0190f29f-ff00-7000-8000-000000000001",
+    "journey_id": "0190f2a0-1000-7000-8000-000000000006",
+    "page": {
+      "surface_id": "0190f29f-fe00-7000-8000-000000000010",
+      "instance_id": "0190f2a0-0200-7000-8000-000000000003",
+      "path": ["app", "cats", "cat"],
+      "path_instance_ids": [
+        "0190f2a0-0000-7000-8000-000000000010",
+        "0190f2a0-0100-7000-8000-000000000011",
+        "0190f2a0-0200-7000-8000-000000000003"
+      ]
+    }
+  },
+  "clock": {
+    "occurred_at_unix_nano": "1721000000123456789",
+    "observed_at_unix_nano": "1721000000223456789",
+    "monotonic_nano": "45123456789",
+    "boot_id": "c1b270cf-64ef-4b8f-975e-4b09f9e43bf5",
+    "sequence_number": 319
+  },
+  "trace": {
+    "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+    "span_id": "a3ce929d0e0e4736",
+    "parent_span_id": "00f067aa0ba902b7",
+    "trace_flags": "01"
+  },
+  "instrumentation": {
+    "name": "dev.chill.swift.macro",
+    "version": "0.1.0"
+  },
+  "resource": {
+    "attributes": {
+      "service.name": "example.ios",
+      "service.version": "1.2.0"
+    }
+  },
+  "annotations": {
+    "cat.id": "cat_12345",
+    "adoption.flow": "standard"
+  },
+  "privacy": {
+    "policy_version": "internal-v1",
+    "capture_class": "analytics",
+    "consent": "granted",
+    "redaction_state": "none",
+    "annotation_classifications": {
+      "adoption.flow": "internal",
+      "cat.id": "pseudonymous_identifier"
+    }
+  },
+  "payload": {
+    "activity_kind": "domain",
+    "role": "operation",
+    "attempt": 1,
+    "recursion_depth": 0
+  }
+}

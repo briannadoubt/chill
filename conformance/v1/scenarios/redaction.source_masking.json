@@ -1,0 +1,93 @@
+{
+  "suite_version": "1.0.0",
+  "id": "redaction.source_masking",
+  "domain": "redaction",
+  "layers": ["model", "adapter", "wire"],
+  "description": "Sensitive content becomes structural masks before buffering while explicitly safe metadata remains.",
+  "given": {
+    "inputs": [
+      {
+        "kind": "ui",
+        "element_id": "label-cat-name",
+        "role": "label",
+        "geometry": [12, 24, 120, 20],
+        "text": "SECRET-CAT-NAME",
+        "accessibility_label": "SECRET-ACCESSIBILITY-LABEL"
+      },
+      {
+        "kind": "ui",
+        "element_id": "input-password",
+        "role": "text_input",
+        "geometry": [12, 52, 240, 44],
+        "secure": true,
+        "text": "SECRET-PASSWORD"
+      },
+      {
+        "kind": "ui",
+        "element_id": "photo-cat",
+        "role": "image",
+        "geometry": [0, 0, 320, 240],
+        "pixels": true,
+        "pixel_canary": "SECRET-PIXELS"
+      },
+      {
+        "kind": "http",
+        "method": "POST",
+        "route_template": "/cats/{cat_id}/adoptions",
+        "status_code": 201,
+        "url": "https://api.example.test/cats/SECRET-ID/adoptions?token=SECRET-TOKEN",
+        "headers": {"authorization": "SECRET-AUTH"},
+        "body": "SECRET-BODY"
+      },
+      {
+        "kind": "error",
+        "reason_code": "adoption.conflict",
+        "message": "SECRET-ERROR-MESSAGE"
+      }
+    ]
+  },
+  "expect": {
+    "records": [
+      {
+        "kind": "ui",
+        "element_id": "label-cat-name",
+        "role": "label",
+        "geometry": [12, 24, 120, 20],
+        "content_mask": {"kind": "text", "length_bucket": "5-16"}
+      },
+      {
+        "kind": "ui",
+        "element_id": "input-password",
+        "role": "text_input",
+        "geometry": [12, 52, 240, 44],
+        "content_mask": {"kind": "secure_input"}
+      },
+      {
+        "kind": "ui",
+        "element_id": "photo-cat",
+        "role": "image",
+        "geometry": [0, 0, 320, 240],
+        "content_mask": {"kind": "pixels"}
+      },
+      {
+        "kind": "http",
+        "method": "POST",
+        "route_template": "/cats/{cat_id}/adoptions",
+        "status_code": 201
+      },
+      {"kind": "error", "reason_code": "adoption.conflict"}
+    ],
+    "redaction_stage": "before_buffer"
+  },
+  "forbidden_tokens": [
+    "SECRET-CAT-NAME",
+    "SECRET-ACCESSIBILITY-LABEL",
+    "SECRET-PASSWORD",
+    "SECRET-PIXELS",
+    "SECRET-ID",
+    "SECRET-TOKEN",
+    "SECRET-AUTH",
+    "SECRET-BODY",
+    "SECRET-ERROR-MESSAGE"
+  ]
+}

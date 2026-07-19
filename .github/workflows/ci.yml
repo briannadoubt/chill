@@ -1,0 +1,274 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secret-scan:
+    name: Secret scanning
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out complete history
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Reject committed credentials
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  contracts:
+    name: Contracts and repository integrity
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install contract validator
+        run: python -m pip install --requirement requirements-contract.txt
+
+      - name: Verify generated contracts and repository policy
+        run: |
+          python scripts/repository_contract.py verify
+          python scripts/validate_documentation.py
+
+      - name: Validate contract fixtures and conformance
+        run: |
+          python scripts/validate-contract-fixtures.py
+          python scripts/run-conformance-suite.py
+          python -m unittest discover -s tests -p 'test_*.py'
+
+      - name: Prove source archives are reproducible
+        shell: bash
+        run: |
+          version="$(tr -d '\n' < VERSION)"
+          scripts/prepare-release-assets.sh "$version" "$RUNNER_TEMP/release-a"
+          scripts/prepare-release-assets.sh "$version" "$RUNNER_TEMP/release-b"
+          diff -u "$RUNNER_TEMP/release-a/manifest.json" "$RUNNER_TEMP/release-b/manifest.json"
+          while IFS= read -r artifact; do
+            cmp "$RUNNER_TEMP/release-a/$artifact" "$RUNNER_TEMP/release-b/$artifact"
+          done < <(find "$RUNNER_TEMP/release-a" -maxdepth 1 -type f -printf '%f\n' | sort)
+
+  backend-rust-quality:
+    name: Rust backend ${{ matrix.check }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [test, clippy, format]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Rust
+        run: rustup toolchain install 1.95.0 --profile minimal --component clippy,rustfmt
+
+      - name: Run tests
+        if: matrix.check == 'test'
+        working-directory: backend
+        run: cargo test --workspace --locked
+
+      - name: Run Clippy
+        if: matrix.check == 'clippy'
+        working-directory: backend
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+
+      - name: Check formatting
+        if: matrix.check == 'format'
+        working-directory: backend
+        run: cargo fmt --all -- --check
+
+  backend-security:
+    name: Rust dependency and source policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Rust
+        run: rustup toolchain install 1.95.0 --profile minimal
+
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked --version 0.19.9
+
+      - name: Reject vulnerable or untrusted Rust dependencies
+        working-directory: backend
+        run: cargo deny check advisories licenses sources
+
+  backend-integration:
+    name: Backend Postgres and object-store integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Rust
+        run: rustup toolchain install 1.95.0 --profile minimal
+
+      - name: Run integration suite
+        run: scripts/test-backend-integration.sh
+
+  backend-query-release:
+    name: Rust release query gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Rust
+        run: rustup toolchain install 1.95.0 --profile minimal
+
+      - name: Exercise bounded query plans in release mode
+        run: scripts/run-query-benchmarks.sh
+
+  backend-image:
+    name: Backend OCI image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Build without publishing
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: false
+          tags: chill/backend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  console:
+    name: Console client
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22.23.1"
+          cache: npm
+          cache-dependency-path: console/package-lock.json
+
+      - name: Validate client
+        working-directory: console
+        run: |
+          npm ci
+          npm run lint
+          npm test
+          npm run build
+          npm audit --audit-level=high
+
+  console-image:
+    name: Console static OCI image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Build without publishing
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: console/Dockerfile
+          push: false
+          tags: chill/console:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  web-sdk:
+    name: Browser SDK contract and budgets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22.23.1"
+          cache: npm
+          cache-dependency-path: sdk/web/package-lock.json
+
+      - name: Verify browser SDK
+        working-directory: sdk/web
+        run: |
+          npm ci
+          npm run check
+          npm test
+          npm run bundle-budget
+          npm run benchmark
+          npm audit --audit-level=high
+
+  android-sdk:
+    name: Android SDK contract and budgets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install pinned Android platform
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-37" "build-tools;37.0.0"
+
+      - name: Verify Android SDK
+        working-directory: sdk/android
+        run: |
+          ./gradlew --no-daemon test lint assembleRelease
+          scripts/check-budgets.sh
+
+  swift-package-contract:
+    name: Swift package contract on Linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: swiftlang/swift:nightly-6.4.x-noble@sha256:9d0b3c2f3ffd173431f70caa87f4ace63e0dc10d2c8dd981b66cf6be66702a3b
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Cache resolved Swift dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: sdk/swift/.build/ci-linux
+          key: swift-6.4-linux-${{ runner.arch }}-${{ hashFiles('sdk/swift/Package.resolved') }}
+
+      - name: Validate manifest, dependency lock, format, and API shape
+        run: scripts/validate-swift-package-linux.sh

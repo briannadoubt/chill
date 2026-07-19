@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0.0",
+  "schema_url": "https://schemas.chill.dev/behavior/v1/envelope.schema.json",
+  "record_id": "0190f2a3-1000-7000-8000-000000000007",
+  "subject_id": "0190f2a0-0100-7000-8000-000000000002",
+  "kind": "replay",
+  "operation": "instant",
+  "name": "replay.chunk",
+  "tenant": {
+    "organization_id": "org_internal",
+    "project_id": "project_chill",
+    "environment_id": "development"
+  },
+  "source": {
+    "platform": "apple",
+    "installation_id": "8c735b90-6f71-4d73-9b16-6a42066f3d31",
+    "process_id": "5f39561f-d38f-43eb-88cf-a60a5799d086",
+    "app_build": "42"
+  },
+  "context": {
+    "session_id": "0190f29f-ff00-7000-8000-000000000001",
+    "replay_id": "0190f2a0-0100-7000-8000-000000000002",
+    "page": {
+      "surface_id": "0190f29f-fe00-7000-8000-000000000010",
+      "instance_id": "0190f2a0-0200-7000-8000-000000000003",
+      "path": ["app", "cats", "cat"],
+      "path_instance_ids": [
+        "0190f2a0-0000-7000-8000-000000000010",
+        "0190f2a0-0100-7000-8000-000000000011",
+        "0190f2a0-0200-7000-8000-000000000003"
+      ]
+    }
+  },
+  "clock": {
+    "occurred_at_unix_nano": "1721000002123456789",
+    "observed_at_unix_nano": "1721000002223456789",
+    "monotonic_nano": "47123456789",
+    "boot_id": "c1b270cf-64ef-4b8f-975e-4b09f9e43bf5",
+    "sequence_number": 325
+  },
+  "instrumentation": {
+    "name": "dev.chill.apple.replay",
+    "version": "0.1.0"
+  },
+  "resource": {
+    "attributes": {
+      "service.name": "example.ios",
+      "device.type": "phone"
+    }
+  },
+  "annotations": {
+    "replay.masking": "source"
+  },
+  "privacy": {
+    "policy_version": "internal-v1",
+    "capture_class": "replay",
+    "consent": "granted",
+    "redaction_state": "applied",
+    "redaction_count": 4,
+    "annotation_classifications": {
+      "replay.masking": "internal"
+    }
+  },
+  "payload": {
+    "chunk_id": "0190f2a3-0000-7000-8000-000000000008",
+    "chunk_index": 7,
+    "codec": "chill.structural.v1",
+    "starts_at_unix_nano": "1721000000000000000",
+    "ends_at_unix_nano": "1721000002000000000",
+    "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "byte_count": 18432,
+    "storage_ref": "replay/org_internal/project_chill/0190f2a0/chunk-000007.bin"
+  }
+}

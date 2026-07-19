@@ -1,0 +1,33 @@
+[package]
+name = "chill-normalize"
+description = "Canonical OTLP and replay normalization workers for Chill"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+chill-control-plane = { path = "../chill-control-plane" }
+hex.workspace = true
+jsonschema.workspace = true
+opentelemetry-proto.workspace = true
+prost.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+sqlx = { workspace = true, features = ["json", "time"] }
+thiserror.workspace = true
+time.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+anyhow.workspace = true
+chill-migrations = { path = "../chill-migrations" }
+chill-ingest = { path = "../chill-ingest" }
+uuid.workspace = true
+
+[lints]
+workspace = true

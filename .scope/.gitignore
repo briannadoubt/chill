@@ -1,0 +1,6 @@
+scope.db
+scope.db-wal
+scope.db-shm
+
+# Scope: quiet local storage keeps event files out of git.
+events/

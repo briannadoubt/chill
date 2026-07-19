@@ -1,0 +1,1020 @@
+{
+  "schema_version": "1.0.0",
+  "profiles": {
+    "apple.core": {
+      "platform": "apple",
+      "feature_set": "core"
+    },
+    "apple.replay": {
+      "platform": "apple",
+      "feature_set": "replay",
+      "extends": "apple.core"
+    },
+    "android.core": {
+      "platform": "android",
+      "feature_set": "core"
+    },
+    "android.replay": {
+      "platform": "android",
+      "feature_set": "replay",
+      "extends": "android.core"
+    },
+    "web.core": {
+      "platform": "web",
+      "feature_set": "core"
+    },
+    "web.replay": {
+      "platform": "web",
+      "feature_set": "replay",
+      "extends": "web.core"
+    },
+    "server.core": {
+      "platform": "server",
+      "feature_set": "core"
+    }
+  },
+  "methods": {
+    "apple.app_thinning_size": {
+      "platform": "apple",
+      "physical_device": false,
+      "description": "Diff compressed and installed sizes for every supported variant in paired Xcode app-thinning reports from clean release archives.",
+      "source_url": "https://developer.apple.com/documentation/xcode/reducing-your-app-s-size"
+    },
+    "apple.xctest_launch": {
+      "platform": "apple",
+      "physical_device": true,
+      "description": "Interleave compiled-out and enabled release builds on the floor device; collect 30 cold launches with XCTApplicationLaunchMetric and signposted Chill initialization slices.",
+      "source_url": "https://developer.apple.com/documentation/XCTest/XCTMetric"
+    },
+    "apple.xctest_micro": {
+      "platform": "apple",
+      "physical_device": true,
+      "description": "Run optimized XCTest clock, CPU, memory, allocation, and storage metrics over batched disabled and enabled hot paths on the floor device.",
+      "source_url": "https://developer.apple.com/documentation/XCTest/XCTMetric"
+    },
+    "apple.sustained_ab": {
+      "platform": "apple",
+      "physical_device": true,
+      "description": "Run five interleaved 30-minute representative journeys in compiled-out and enabled release builds; collect XCTest, Instruments, and MetricKit-compatible CPU, memory, disk, hitch, and failure counters.",
+      "source_url": "https://developer.apple.com/documentation/metrickit/monitoring-app-performance-with-metrickit"
+    },
+    "apple.power_profiler_ab": {
+      "platform": "apple",
+      "physical_device": true,
+      "description": "Compare at least five paired Power Profiler traces on the same unpowered, thermally stable device model and fixed display/network conditions.",
+      "source_url": "https://developer.apple.com/documentation/xcode/measuring-your-app-s-power-use-with-power-profiler"
+    },
+    "apple.network_ab": {
+      "platform": "apple",
+      "physical_device": true,
+      "description": "Capture compressed on-wire bytes for ten 100-record batches and a ten-minute idle window with the same endpoint, protocol, and radio conditions.",
+      "source_url": "https://developer.apple.com/documentation/xcode/performance-and-metrics"
+    },
+    "apple.queue_stress": {
+      "platform": "apple",
+      "physical_device": true,
+      "description": "Exercise the release queue at 100 records/second for 30 minutes, 1,000 records/second for ten seconds, then offline fill and recovery while counting writes, drops, crashes, and hangs."
+    },
+    "apple.privacy_canary": {
+      "platform": "apple",
+      "physical_device": false,
+      "description": "Seed unique canaries in SwiftUI/UIKit text, secure inputs, accessibility labels, clipboard, HTTP headers/body/query, errors, images, and consent transitions; scan memory snapshots, queues, OTLP, replay, and diagnostics."
+    },
+    "apple.replay_ab": {
+      "platform": "apple",
+      "physical_device": true,
+      "description": "Compare paired scrolling, animation, navigation, form, image, and masking journeys with XCTHitchMetric, signpost timing, memory, CPU, power, network, disk, and replay frame counters.",
+      "source_url": "https://developer.apple.com/documentation/XCTest/XCTMetric"
+    },
+    "android.bundle_size": {
+      "platform": "android",
+      "physical_device": false,
+      "description": "Diff optimized release AAB/APK download and installed-size estimates for every supported ABI/density using the same R8 and resource-shrinker configuration.",
+      "source_url": "https://developer.android.com/topic/performance/reduce-apk-size"
+    },
+    "android.macrobenchmark_startup": {
+      "platform": "android",
+      "physical_device": true,
+      "description": "Interleave compiled-out and enabled release variants for at least 30 cold starts with Macrobenchmark StartupTimingMetric and named initialization trace sections.",
+      "source_url": "https://developer.android.com/topic/performance/benchmarking/macrobenchmark-metrics"
+    },
+    "android.microbenchmark": {
+      "platform": "android",
+      "physical_device": true,
+      "description": "Use Android Microbenchmark on optimized release code for batched disabled/enabled hot paths, allocations, and queue primitives.",
+      "source_url": "https://developer.android.com/topic/performance/benchmarking/benchmarking-overview"
+    },
+    "android.sustained_ab": {
+      "platform": "android",
+      "physical_device": true,
+      "description": "Run five paired 30-minute journeys and collect Macrobenchmark frame/trace metrics, process memory/CPU, disk, drop, crash, and ANR counters on the floor device.",
+      "source_url": "https://developer.android.com/topic/performance/benchmarking/macrobenchmark-overview"
+    },
+    "android.power_metric_ab": {
+      "platform": "android",
+      "physical_device": true,
+      "description": "Compare five paired Macrobenchmark PowerMetric runs on one supported Pixel power-rail device under fixed thermal, display, account, and network state.",
+      "source_url": "https://developer.android.com/topic/performance/benchmarking/macrobenchmark-metrics"
+    },
+    "android.network_ab": {
+      "platform": "android",
+      "physical_device": true,
+      "description": "Capture compressed on-wire bytes for ten 100-record batches and a ten-minute idle window under identical release and radio conditions."
+    },
+    "android.queue_stress": {
+      "platform": "android",
+      "physical_device": true,
+      "description": "Exercise 100 records/second for 30 minutes, a 1,000 records/second burst, offline fill, process death, and recovery while counting writes, drops, crashes, and ANRs."
+    },
+    "android.privacy_canary": {
+      "platform": "android",
+      "physical_device": false,
+      "description": "Seed unique canaries in Compose/View text, password inputs, accessibility labels, clipboard, HTTP headers/body/query, errors, bitmaps, and consent transitions; scan all serialized and diagnostic surfaces."
+    },
+    "android.replay_ab": {
+      "platform": "android",
+      "physical_device": true,
+      "description": "Compare paired replay journeys with Macrobenchmark FrameTimingMetric, trace sections, memory, CPU, PowerMetric, network, disk, and redaction counters.",
+      "source_url": "https://developer.android.com/topic/performance/benchmarking/macrobenchmark-metrics"
+    },
+    "web.brotli_bundle": {
+      "platform": "web",
+      "physical_device": false,
+      "description": "Diff deterministic production ESM bundles after minification, tree shaking, and Brotli compression; exercise both imported and unused entry points."
+    },
+    "web.lighthouse_ab": {
+      "platform": "web",
+      "physical_device": false,
+      "description": "Run 30 compiled-out/enabled production journeys in a pinned browser under the floor CPU/network profile; use Lighthouse budgets and PerformanceObserver marks for initialization and blocking work.",
+      "source_url": "https://web.dev/articles/use-lighthouse-for-performance-budgets"
+    },
+    "web.microbenchmark": {
+      "platform": "web",
+      "physical_device": false,
+      "description": "Measure large batches of disabled/enabled hot paths in a pinned production browser so timer precision cannot dominate individual calls."
+    },
+    "web.sustained_ab": {
+      "platform": "web",
+      "physical_device": false,
+      "description": "Run five paired 30-minute journeys under the floor browser profile; collect process/heap, task, event, layout, CPU, storage, error, and dropped PerformanceObserver entry data.",
+      "source_url": "https://developer.mozilla.org/en-US/docs/Web/API/PerformanceObserver/observe"
+    },
+    "web.network_ab": {
+      "platform": "web",
+      "physical_device": false,
+      "description": "Use browser network instrumentation to measure compressed bytes for ten 100-record batches and requests during a ten-minute idle window."
+    },
+    "web.queue_stress": {
+      "platform": "web",
+      "physical_device": false,
+      "description": "Exercise worker/main-thread queues, IndexedDB offline fill, quota pressure, reload, and recovery at the rated steady and burst loads."
+    },
+    "web.privacy_canary": {
+      "platform": "web",
+      "physical_device": false,
+      "description": "Seed unique canaries in textContent, inputs, ARIA labels, clipboard, URL/query, fetch headers/body, errors, canvas/media, storage, and consent transitions; scan heap and every output."
+    },
+    "web.replay_ab": {
+      "platform": "web",
+      "physical_device": false,
+      "description": "Compare paired DOM/replay journeys under the floor browser profile using user timing, PerformanceObserver event/long-task/layout entries, heap, network, storage, and masking counters.",
+      "source_url": "https://w3c.github.io/longtasks/"
+    },
+    "server.image_size": {
+      "platform": "server",
+      "physical_device": false,
+      "description": "Diff reproducible stripped production artifact or compressed container-layer size with and without the Chill server module."
+    },
+    "server.process_ab": {
+      "platform": "server",
+      "physical_device": false,
+      "description": "Run compiled-out/enabled optimized service builds on an isolated pinned runner; collect at least 30 startup samples and five 30-minute throughput, CPU, RSS, queue, disk, and failure trials."
+    },
+    "server.network_ab": {
+      "platform": "server",
+      "physical_device": false,
+      "description": "Measure compressed OTLP bytes for ten 100-record batches and a ten-minute idle service window against a local fixed collector."
+    },
+    "server.queue_stress": {
+      "platform": "server",
+      "physical_device": false,
+      "description": "Exercise rated steady/burst ingestion, collector loss, queue cap, restart, and recovery while counting writes, drops, crashes, and stalls."
+    },
+    "server.privacy_canary": {
+      "platform": "server",
+      "physical_device": false,
+      "description": "Seed canaries in request headers/body/query, credentials, errors, logs, job payloads, and consent/tenant transitions; scan process output, queues, OTLP, and diagnostics."
+    }
+  },
+  "budgets": [
+    {
+      "id": "package.download_delta_bytes",
+      "category": "package",
+      "unit": "byte",
+      "statistic": "max_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.app_thinning_size",
+        "android": "android.bundle_size",
+        "web": "web.brotli_bundle",
+        "server": "server.image_size"
+      },
+      "thresholds": {
+        "apple.core": 2097152,
+        "android.core": 1572864,
+        "web.core": 35840,
+        "server.core": 10485760
+      }
+    },
+    {
+      "id": "package.install_delta_bytes",
+      "category": "package",
+      "unit": "byte",
+      "statistic": "max_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.app_thinning_size",
+        "android": "android.bundle_size"
+      },
+      "thresholds": {
+        "apple.core": 5242880,
+        "android.core": 4194304
+      }
+    },
+    {
+      "id": "startup.p95_delta_ms",
+      "category": "startup",
+      "unit": "millisecond",
+      "statistic": "upper_ci_p95_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 30,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.xctest_launch",
+        "android": "android.macrobenchmark_startup",
+        "web": "web.lighthouse_ab",
+        "server": "server.process_ab"
+      },
+      "thresholds": {
+        "apple.core": 10,
+        "android.core": 15,
+        "web.core": 10,
+        "server.core": 10
+      }
+    },
+    {
+      "id": "startup.longest_blocking_delta_ms",
+      "category": "startup",
+      "unit": "millisecond",
+      "statistic": "upper_ci_p99_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 30,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.xctest_launch",
+        "android": "android.macrobenchmark_startup",
+        "web": "web.lighthouse_ab"
+      },
+      "thresholds": {
+        "apple.core": 2,
+        "android.core": 2,
+        "web.core": 5
+      }
+    },
+    {
+      "id": "hot_path.disabled_p99_ns",
+      "category": "hot_path",
+      "unit": "nanosecond_per_call",
+      "statistic": "p99",
+      "comparison": "lte",
+      "minimum_samples": 20,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.xctest_micro",
+        "android": "android.microbenchmark",
+        "web": "web.microbenchmark",
+        "server": "server.process_ab"
+      },
+      "thresholds": {
+        "apple.core": 100,
+        "android.core": 100,
+        "web.core": 250,
+        "server.core": 100
+      }
+    },
+    {
+      "id": "hot_path.disabled_allocations_per_call",
+      "category": "hot_path",
+      "unit": "allocation_per_call",
+      "statistic": "max",
+      "comparison": "eq",
+      "minimum_samples": 20,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.xctest_micro",
+        "android": "android.microbenchmark",
+        "web": "web.microbenchmark",
+        "server": "server.process_ab"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0,
+        "server.core": 0
+      }
+    },
+    {
+      "id": "hot_path.capture_sync_p99_us",
+      "category": "hot_path",
+      "unit": "microsecond_per_fact",
+      "statistic": "p99",
+      "comparison": "lte",
+      "minimum_samples": 20,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.xctest_micro",
+        "android": "android.microbenchmark",
+        "web": "web.microbenchmark",
+        "server": "server.process_ab"
+      },
+      "thresholds": {
+        "apple.core": 250,
+        "android.core": 250,
+        "web.core": 300,
+        "server.core": 100
+      }
+    },
+    {
+      "id": "hot_path.main_thread_io_count",
+      "category": "hot_path",
+      "unit": "operation_count",
+      "statistic": "total",
+      "comparison": "eq",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.sustained_ab",
+        "android": "android.sustained_ab",
+        "web": "web.sustained_ab"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0
+      }
+    },
+    {
+      "id": "memory.steady_delta_bytes",
+      "category": "memory",
+      "unit": "byte",
+      "statistic": "upper_ci_mean_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.sustained_ab",
+        "android": "android.sustained_ab",
+        "web": "web.sustained_ab",
+        "server": "server.process_ab"
+      },
+      "thresholds": {
+        "apple.core": 4194304,
+        "android.core": 4194304,
+        "web.core": 2097152,
+        "server.core": 16777216
+      }
+    },
+    {
+      "id": "cpu.typical_delta_percent",
+      "category": "cpu",
+      "unit": "percent",
+      "statistic": "upper_ci_mean_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.sustained_ab",
+        "android": "android.sustained_ab",
+        "web": "web.sustained_ab",
+        "server": "server.process_ab"
+      },
+      "thresholds": {
+        "apple.core": 2,
+        "android.core": 2,
+        "web.core": 2,
+        "server.core": 3
+      }
+    },
+    {
+      "id": "cpu.throughput_loss_percent",
+      "category": "cpu",
+      "unit": "percent",
+      "statistic": "upper_ci_mean_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "server": "server.process_ab"
+      },
+      "thresholds": {
+        "server.core": 3
+      }
+    },
+    {
+      "id": "cpu.energy_delta_percent",
+      "category": "cpu",
+      "unit": "percent",
+      "statistic": "upper_ci_mean_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.power_profiler_ab",
+        "android": "android.power_metric_ab"
+      },
+      "thresholds": {
+        "apple.core": 3,
+        "android.core": 3
+      }
+    },
+    {
+      "id": "network.compressed_bytes_per_record",
+      "category": "network",
+      "unit": "byte_per_record",
+      "statistic": "upper_ci_mean",
+      "comparison": "lte",
+      "minimum_samples": 10,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.network_ab",
+        "android": "android.network_ab",
+        "web": "web.network_ab",
+        "server": "server.network_ab"
+      },
+      "thresholds": {
+        "apple.core": 750,
+        "android.core": 750,
+        "web.core": 750,
+        "server.core": 750
+      }
+    },
+    {
+      "id": "network.idle_request_count",
+      "category": "network",
+      "unit": "request_count_per_10_minute",
+      "statistic": "total",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.network_ab",
+        "android": "android.network_ab",
+        "web": "web.network_ab",
+        "server": "server.network_ab"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0,
+        "server.core": 0
+      }
+    },
+    {
+      "id": "disk.queue_hard_cap_bytes",
+      "category": "disk",
+      "unit": "byte",
+      "statistic": "configured_max",
+      "comparison": "lte",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.queue_stress",
+        "android": "android.queue_stress",
+        "web": "web.queue_stress",
+        "server": "server.queue_stress"
+      },
+      "thresholds": {
+        "apple.core": 67108864,
+        "android.core": 67108864,
+        "web.core": 16777216,
+        "server.core": 268435456
+      }
+    },
+    {
+      "id": "disk.written_bytes_per_record",
+      "category": "disk",
+      "unit": "byte_per_record",
+      "statistic": "upper_ci_mean",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.queue_stress",
+        "android": "android.queue_stress",
+        "web": "web.queue_stress",
+        "server": "server.queue_stress"
+      },
+      "thresholds": {
+        "apple.core": 1024,
+        "android.core": 1024,
+        "web.core": 1024,
+        "server.core": 1024
+      }
+    },
+    {
+      "id": "reliability.high_value_drops_count",
+      "category": "reliability",
+      "unit": "record_count",
+      "statistic": "total_at_rated_load",
+      "comparison": "eq",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.queue_stress",
+        "android": "android.queue_stress",
+        "web": "web.queue_stress",
+        "server": "server.queue_stress"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0,
+        "server.core": 0
+      }
+    },
+    {
+      "id": "reliability.crash_hang_anr_count",
+      "category": "reliability",
+      "unit": "incident_count",
+      "statistic": "total_at_rated_load",
+      "comparison": "eq",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.queue_stress",
+        "android": "android.queue_stress",
+        "web": "web.queue_stress",
+        "server": "server.queue_stress"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0,
+        "server.core": 0
+      }
+    },
+    {
+      "id": "privacy.ui_canary_leaks_count",
+      "category": "privacy",
+      "unit": "canary_count",
+      "statistic": "total",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0
+      }
+    },
+    {
+      "id": "privacy.network_canary_leaks_count",
+      "category": "privacy",
+      "unit": "canary_count",
+      "statistic": "total",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary",
+        "server": "server.privacy_canary"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0,
+        "server.core": 0
+      }
+    },
+    {
+      "id": "privacy.diagnostic_canary_leaks_count",
+      "category": "privacy",
+      "unit": "canary_count",
+      "statistic": "total",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary",
+        "server": "server.privacy_canary"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0,
+        "server.core": 0
+      }
+    },
+    {
+      "id": "privacy.implicit_text_capture_paths_count",
+      "category": "privacy",
+      "unit": "code_path_count",
+      "statistic": "total",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary",
+        "server": "server.privacy_canary"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0,
+        "server.core": 0
+      }
+    },
+    {
+      "id": "privacy.denied_outbound_bytes",
+      "category": "privacy",
+      "unit": "byte",
+      "statistic": "total_after_denial",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary",
+        "server": "server.privacy_canary"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0,
+        "server.core": 0
+      }
+    },
+    {
+      "id": "privacy.denied_persisted_bytes",
+      "category": "privacy",
+      "unit": "byte",
+      "statistic": "total_after_denial",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary",
+        "server": "server.privacy_canary"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0,
+        "server.core": 0
+      }
+    },
+    {
+      "id": "privacy.revocation_purge_p95_ms",
+      "category": "privacy",
+      "unit": "millisecond",
+      "statistic": "p95",
+      "comparison": "lte",
+      "minimum_samples": 20,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary",
+        "server": "server.privacy_canary"
+      },
+      "thresholds": {
+        "apple.core": 5000,
+        "android.core": 5000,
+        "web.core": 5000,
+        "server.core": 5000
+      }
+    },
+    {
+      "id": "privacy.replay_enabled_by_default",
+      "category": "privacy",
+      "unit": "boolean_as_integer",
+      "statistic": "configured_value",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0
+      }
+    },
+    {
+      "id": "privacy.unknown_classification_acceptances_count",
+      "category": "privacy",
+      "unit": "acceptance_count",
+      "statistic": "total",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary",
+        "server": "server.privacy_canary"
+      },
+      "thresholds": {
+        "apple.core": 0,
+        "android.core": 0,
+        "web.core": 0,
+        "server.core": 0
+      }
+    },
+    {
+      "id": "package.replay_download_delta_bytes",
+      "category": "replay",
+      "unit": "byte",
+      "statistic": "max_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.app_thinning_size",
+        "android": "android.bundle_size",
+        "web": "web.brotli_bundle"
+      },
+      "thresholds": {
+        "apple.replay": 1048576,
+        "android.replay": 1048576,
+        "web.replay": 46080
+      }
+    },
+    {
+      "id": "replay.frame_capture_p95_ms",
+      "category": "replay",
+      "unit": "millisecond_per_frame",
+      "statistic": "p95",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.replay_ab",
+        "android": "android.replay_ab",
+        "web": "web.replay_ab"
+      },
+      "thresholds": {
+        "apple.replay": 1,
+        "android.replay": 1,
+        "web.replay": 1
+      }
+    },
+    {
+      "id": "replay.frame_capture_p99_ms",
+      "category": "replay",
+      "unit": "millisecond_per_frame",
+      "statistic": "p99",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.replay_ab",
+        "android": "android.replay_ab",
+        "web": "web.replay_ab"
+      },
+      "thresholds": {
+        "apple.replay": 2,
+        "android.replay": 2,
+        "web.replay": 2
+      }
+    },
+    {
+      "id": "replay.jank_delta_percentage_points",
+      "category": "replay",
+      "unit": "percentage_point",
+      "statistic": "upper_ci_p95_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.replay_ab",
+        "android": "android.replay_ab",
+        "web": "web.replay_ab"
+      },
+      "thresholds": {
+        "apple.replay": 0.5,
+        "android.replay": 0.5,
+        "web.replay": 0.5
+      }
+    },
+    {
+      "id": "replay.memory_delta_bytes",
+      "category": "replay",
+      "unit": "byte",
+      "statistic": "upper_ci_mean_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.replay_ab",
+        "android": "android.replay_ab",
+        "web": "web.replay_ab"
+      },
+      "thresholds": {
+        "apple.replay": 16777216,
+        "android.replay": 16777216,
+        "web.replay": 12582912
+      }
+    },
+    {
+      "id": "replay.cpu_delta_percent",
+      "category": "replay",
+      "unit": "percent",
+      "statistic": "upper_ci_mean_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.replay_ab",
+        "android": "android.replay_ab",
+        "web": "web.replay_ab"
+      },
+      "thresholds": {
+        "apple.replay": 8,
+        "android.replay": 8,
+        "web.replay": 8
+      }
+    },
+    {
+      "id": "replay.energy_delta_percent",
+      "category": "replay",
+      "unit": "percent",
+      "statistic": "upper_ci_mean_paired_delta",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.power_profiler_ab",
+        "android": "android.power_metric_ab"
+      },
+      "thresholds": {
+        "apple.replay": 8,
+        "android.replay": 8
+      }
+    },
+    {
+      "id": "replay.network_kib_per_minute",
+      "category": "replay",
+      "unit": "kibibyte_per_minute",
+      "statistic": "upper_ci_mean",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.replay_ab",
+        "android": "android.replay_ab",
+        "web": "web.replay_ab"
+      },
+      "thresholds": {
+        "apple.replay": 150,
+        "android.replay": 150,
+        "web.replay": 150
+      }
+    },
+    {
+      "id": "replay.offline_disk_hard_cap_bytes",
+      "category": "replay",
+      "unit": "byte",
+      "statistic": "configured_max",
+      "comparison": "lte",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.replay_ab",
+        "android": "android.replay_ab",
+        "web": "web.replay_ab"
+      },
+      "thresholds": {
+        "apple.replay": 268435456,
+        "android.replay": 268435456,
+        "web.replay": 67108864
+      }
+    },
+    {
+      "id": "replay.dropped_frames_percent",
+      "category": "replay",
+      "unit": "percent",
+      "statistic": "upper_ci_mean",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.replay_ab",
+        "android": "android.replay_ab",
+        "web": "web.replay_ab"
+      },
+      "thresholds": {
+        "apple.replay": 1,
+        "android.replay": 1,
+        "web.replay": 1
+      }
+    },
+    {
+      "id": "replay.masking_p99_ms",
+      "category": "replay",
+      "unit": "millisecond_per_frame",
+      "statistic": "p99",
+      "comparison": "lte",
+      "minimum_samples": 5,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.replay_ab",
+        "android": "android.replay_ab",
+        "web": "web.replay_ab"
+      },
+      "thresholds": {
+        "apple.replay": 1,
+        "android.replay": 1,
+        "web.replay": 1
+      }
+    },
+    {
+      "id": "replay.unredacted_frames_count",
+      "category": "replay",
+      "unit": "frame_count",
+      "statistic": "total",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary"
+      },
+      "thresholds": {
+        "apple.replay": 0,
+        "android.replay": 0,
+        "web.replay": 0
+      }
+    },
+    {
+      "id": "replay.serialized_canary_leaks_count",
+      "category": "replay",
+      "unit": "canary_count",
+      "statistic": "total",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary"
+      },
+      "thresholds": {
+        "apple.replay": 0,
+        "android.replay": 0,
+        "web.replay": 0
+      }
+    },
+    {
+      "id": "replay.raw_sensitive_buffer_bytes",
+      "category": "replay",
+      "unit": "byte",
+      "statistic": "max",
+      "comparison": "eq",
+      "minimum_samples": 1,
+      "release_blocking": true,
+      "method_by_platform": {
+        "apple": "apple.privacy_canary",
+        "android": "android.privacy_canary",
+        "web": "web.privacy_canary"
+      },
+      "thresholds": {
+        "apple.replay": 0,
+        "android.replay": 0,
+        "web.replay": 0
+      }
+    }
+  ]
+}

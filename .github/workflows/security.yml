@@ -1,0 +1,47 @@
+name: Scheduled security exercise
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 11 * * 6"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust-fuzz:
+    name: Rust parser and plan fuzz smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up nightly Rust
+        run: rustup toolchain install nightly --profile minimal
+
+      - name: Install pinned cargo-fuzz
+        run: rustup run nightly cargo install cargo-fuzz --locked --version 0.13.2
+
+      - name: Exercise attacker-controlled Rust boundaries
+        env:
+          CHILL_FUZZ_SECONDS: "60"
+        run: scripts/run-rust-fuzz-smoke.sh
+
+  abuse-integration:
+    name: Tenant and abuse integration suite
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Rust
+        run: rustup toolchain install 1.95.0 --profile minimal
+
+      - name: Exercise RLS, credentials, quotas, replay, query, and lifecycle boundaries
+        run: scripts/test-backend-integration.sh

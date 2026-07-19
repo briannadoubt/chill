@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "schema_url": "https://schemas.chill.dev/behavior/v1/envelope.schema.json",
+  "record_id": "0190f29f-ff01-7000-8000-000000000011",
+  "subject_id": "0190f29f-ff00-7000-8000-000000000001",
+  "kind": "session",
+  "operation": "start",
+  "name": "app.session",
+  "tenant": {
+    "organization_id": "org_internal",
+    "project_id": "project_chill",
+    "environment_id": "development"
+  },
+  "source": {
+    "platform": "apple",
+    "installation_id": "8c735b90-6f71-4d73-9b16-6a42066f3d31",
+    "process_id": "5f39561f-d38f-43eb-88cf-a60a5799d086",
+    "app_build": "42"
+  },
+  "context": {
+    "session_id": "0190f29f-ff00-7000-8000-000000000001"
+  },
+  "clock": {
+    "occurred_at_unix_nano": "1720999999000000000",
+    "observed_at_unix_nano": "1720999999100000000",
+    "monotonic_nano": "44000000000",
+    "boot_id": "c1b270cf-64ef-4b8f-975e-4b09f9e43bf5",
+    "sequence_number": 300
+  },
+  "instrumentation": {
+    "name": "dev.chill.apple",
+    "version": "0.1.0"
+  },
+  "resource": {
+    "attributes": {
+      "service.name": "example.ios"
+    }
+  },
+  "annotations": {},
+  "privacy": {
+    "policy_version": "internal-v1",
+    "capture_class": "analytics",
+    "consent": "granted",
+    "redaction_state": "none",
+    "annotation_classifications": {}
+  },
+  "payload": {
+    "idle_timeout_nano": "1800000000000"
+  }
+}

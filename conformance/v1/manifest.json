@@ -1,0 +1,100 @@
+{
+  "suite_version": "1.0.0",
+  "required_domains": [
+    "annotations",
+    "navigation",
+    "actions",
+    "trace",
+    "offline",
+    "replay",
+    "schema",
+    "redaction",
+    "sampling"
+  ],
+  "profiles": {
+    "client.core": {
+      "scenarios": [
+        "annotations.outer_first",
+        "navigation.stack_sheet",
+        "actions.semantic_dedup",
+        "trace.first_party_propagation",
+        "offline.at_least_once_recovery",
+        "schema.exact_negotiation",
+        "redaction.source_masking",
+        "sampling.independent_streams"
+      ]
+    },
+    "client.replay": {
+      "extends": "client.core",
+      "scenarios": [
+        "replay.monotonic_alignment"
+      ]
+    },
+    "server.core": {
+      "scenarios": [
+        "annotations.outer_first",
+        "trace.first_party_propagation",
+        "offline.at_least_once_recovery",
+        "schema.exact_negotiation",
+        "redaction.source_masking",
+        "sampling.independent_streams"
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "id": "annotations.outer_first",
+      "domain": "annotations",
+      "layers": ["model", "adapter", "wire"],
+      "path": "scenarios/annotations.outer_first.json"
+    },
+    {
+      "id": "navigation.stack_sheet",
+      "domain": "navigation",
+      "layers": ["model", "adapter", "wire"],
+      "path": "scenarios/navigation.stack_sheet.json"
+    },
+    {
+      "id": "actions.semantic_dedup",
+      "domain": "actions",
+      "layers": ["model", "adapter", "wire"],
+      "path": "scenarios/actions.semantic_dedup.json"
+    },
+    {
+      "id": "trace.first_party_propagation",
+      "domain": "trace",
+      "layers": ["model", "adapter", "wire"],
+      "path": "scenarios/trace.first_party_propagation.json"
+    },
+    {
+      "id": "offline.at_least_once_recovery",
+      "domain": "offline",
+      "layers": ["model", "adapter", "wire"],
+      "path": "scenarios/offline.at_least_once_recovery.json"
+    },
+    {
+      "id": "replay.monotonic_alignment",
+      "domain": "replay",
+      "layers": ["model", "adapter", "wire"],
+      "path": "scenarios/replay.monotonic_alignment.json"
+    },
+    {
+      "id": "schema.exact_negotiation",
+      "domain": "schema",
+      "layers": ["model", "adapter", "wire"],
+      "path": "scenarios/schema.exact_negotiation.json"
+    },
+    {
+      "id": "redaction.source_masking",
+      "domain": "redaction",
+      "layers": ["model", "adapter", "wire"],
+      "path": "scenarios/redaction.source_masking.json"
+    },
+    {
+      "id": "sampling.independent_streams",
+      "domain": "sampling",
+      "layers": ["model", "adapter", "wire"],
+      "path": "scenarios/sampling.independent_streams.json"
+    }
+  ]
+}

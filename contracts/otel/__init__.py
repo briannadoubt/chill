@@ -1,0 +1,1 @@
+"""OpenTelemetry interoperability contracts."""

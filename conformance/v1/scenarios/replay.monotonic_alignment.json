@@ -1,0 +1,38 @@
+{
+  "suite_version": "1.0.0",
+  "id": "replay.monotonic_alignment",
+  "domain": "replay",
+  "layers": ["model", "adapter", "wire"],
+  "description": "Behavior facts align to replay by boot-relative monotonic time even when wall time moves backward.",
+  "given": {
+    "chunks": [
+      {
+        "chunk_id": "chunk-a",
+        "boot_id": "boot-1",
+        "start_monotonic_nano": 1000,
+        "end_monotonic_nano": 1600,
+        "wall_unix_nano": 1700000000000000000
+      },
+      {
+        "chunk_id": "chunk-b",
+        "boot_id": "boot-1",
+        "start_monotonic_nano": 1600,
+        "end_monotonic_nano": 2200,
+        "wall_unix_nano": 1699999999000000000
+      }
+    ],
+    "facts": [
+      {"record_id": "record-before-boundary", "boot_id": "boot-1", "monotonic_nano": 1500},
+      {"record_id": "record-at-boundary", "boot_id": "boot-1", "monotonic_nano": 1600},
+      {"record_id": "record-after-shift", "boot_id": "boot-1", "monotonic_nano": 2100}
+    ]
+  },
+  "expect": {
+    "aligned_facts": [
+      {"record_id": "record-before-boundary", "chunk_id": "chunk-a", "offset_nano": 500},
+      {"record_id": "record-at-boundary", "chunk_id": "chunk-b", "offset_nano": 0},
+      {"record_id": "record-after-shift", "chunk_id": "chunk-b", "offset_nano": 500}
+    ],
+    "clock_basis": "boot_monotonic"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "suite_version": "1.0.0",
+  "id": "sampling.independent_streams",
+  "domain": "sampling",
+  "layers": ["model", "adapter", "wire"],
+  "description": "Behavior and replay sampling are stable, independently salted streams and do not inherit trace sampling.",
+  "given": {
+    "salt": "test-salt-v1",
+    "streams": {
+      "behavior": {"numerator": 1, "denominator": 2},
+      "replay": {"numerator": 1, "denominator": 4}
+    },
+    "cases": [
+      {"case": "unsampled_trace_kept_behavior", "stable_key": "user-2", "trace_sampled": false},
+      {"case": "sampled_trace_dropped_behavior", "stable_key": "user-0", "trace_sampled": true}
+    ]
+  },
+  "expect": {
+    "algorithm": "sha256-first-u64",
+    "results": [
+      {
+        "case": "unsampled_trace_kept_behavior",
+        "stable_key": "user-2",
+        "trace_sampled": false,
+        "decisions": {
+          "behavior": {"kept": true, "digest_prefix": "6e18324b28d8b1e8"},
+          "replay": {"kept": false, "digest_prefix": "aba66fd86a055fc0"}
+        }
+      },
+      {
+        "case": "sampled_trace_dropped_behavior",
+        "stable_key": "user-0",
+        "trace_sampled": true,
+        "decisions": {
+          "behavior": {"kept": false, "digest_prefix": "a7f598b903ffef97"},
+          "replay": {"kept": true, "digest_prefix": "01c9f23bcfde7fee"}
+        }
+      }
+    ]
+  }
+}

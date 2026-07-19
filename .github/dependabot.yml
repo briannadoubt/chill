@@ -1,0 +1,109 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 2
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(actions)"
+
+  - package-ecosystem: cargo
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:15"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 2
+    groups:
+      rust-crates:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(rust)"
+
+  - package-ecosystem: swift
+    directory: /sdk/swift
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:30"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: "build(swift)"
+
+  - package-ecosystem: swift
+    directory: /sdk/swift/Examples
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:45"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: "build(swift-examples)"
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:00"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: "build(python)"
+
+  - package-ecosystem: npm
+    directory: /console
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:05"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 2
+    groups:
+      console-packages:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(console)"
+
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:15"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: "build(container)"
+
+  - package-ecosystem: docker-compose
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:30"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: "build(dev-images)"
+
+  - package-ecosystem: docker-compose
+    directory: /deploy/single-node
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:45"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: "build(deploy-images)"

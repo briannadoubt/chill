@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "apple_physical_smoke_attestation",
+  "captured_at": "2026-07-15",
+  "profiler_manifest_sha256": "1e7703acfc60fec94c842766c903b6d702b1b2d17e7c32afd41ed36acbe6f0c9",
+  "device": {
+    "model": "iPhone 13",
+    "os": "iOS 18.7.8",
+    "physical": true,
+    "developer_mode": true
+  },
+  "build": {
+    "configuration": "release",
+    "baseline": "compiled-out",
+    "candidate": "Chill core plus structural replay",
+    "signed_install_and_launch": "passed"
+  },
+  "interaction": {
+    "release_ui_tests": 1,
+    "passed": 1,
+    "duration_seconds": 8.004,
+    "observed_before": [
+      "validation.list",
+      "privacy.secure-field",
+      "validation.notifications",
+      "cat.cat-123",
+      "cat.cat-456"
+    ],
+    "observed_after": [
+      "validation.detail",
+      "Request adoption"
+    ],
+    "declarative_action_activated": true,
+    "process_remained_foreground": true,
+    "screenshots_and_hierarchy_captured": true
+  },
+  "launch_diagnostic": {
+    "method": "XCTApplicationLaunchMetric",
+    "candidate_samples": 30,
+    "baseline_samples": 30,
+    "candidate_mean_milliseconds": 423.282,
+    "baseline_mean_milliseconds": 384.824,
+    "mean_delta_milliseconds": 38.458,
+    "interleaved": false,
+    "release_budget_eligible": false
+  },
+  "release_gate": {
+    "passed": false,
+    "reasons": [
+      "cold launches were collected as sequential diagnostic batches instead of required interleaved pairs",
+      "diagnostic mean launch delta exceeds the 10 millisecond startup budget",
+      "device OS is not the oldest supported iOS release",
+      "thermal and unplugged power provenance were not recorded",
+      "sustained, queue-pressure, replay, accessibility, privacy-canary, network, power, and app-thinning release measurements remain missing"
+    ]
+  }
+}

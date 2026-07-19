@@ -1,0 +1,622 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.chill.dev/behavior/v1/envelope.schema.json",
+  "title": "Chill canonical behavior record envelope v1",
+  "description": "Trusted post-ingestion representation of one immutable behavior lifecycle fact.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "schema_url",
+    "record_id",
+    "subject_id",
+    "kind",
+    "operation",
+    "name",
+    "tenant",
+    "source",
+    "clock",
+    "instrumentation",
+    "resource",
+    "annotations",
+    "privacy",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "schema_url": {
+      "const": "https://schemas.chill.dev/behavior/v1/envelope.schema.json"
+    },
+    "record_id": {
+      "$ref": "#/$defs/uuidV7"
+    },
+    "subject_id": {
+      "$ref": "#/$defs/uuidV7"
+    },
+    "kind": {
+      "enum": [
+        "session",
+        "journey",
+        "page",
+        "impression",
+        "action",
+        "activity",
+        "event",
+        "replay"
+      ]
+    },
+    "operation": {
+      "enum": ["instant", "start", "update", "end"]
+    },
+    "name": {
+      "$ref": "#/$defs/semanticName"
+    },
+    "tenant": {
+      "$ref": "#/$defs/tenant"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "actor": {
+      "$ref": "#/$defs/actor"
+    },
+    "context": {
+      "$ref": "#/$defs/context"
+    },
+    "clock": {
+      "$ref": "#/$defs/clock"
+    },
+    "trace": {
+      "$ref": "#/$defs/trace"
+    },
+    "instrumentation": {
+      "$ref": "#/$defs/instrumentation"
+    },
+    "resource": {
+      "$ref": "#/$defs/resource"
+    },
+    "annotations": {
+      "$ref": "#/$defs/attributes"
+    },
+    "privacy": {
+      "$ref": "#/$defs/privacy"
+    },
+    "outcome": {
+      "$ref": "#/$defs/outcome"
+    },
+    "duration_nano": {
+      "$ref": "#/$defs/uint64String"
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": ["session", "journey", "page"]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {
+          "operation": {
+            "enum": ["start", "update", "end"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"kind": {"const": "activity"}},
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {"operation": {"enum": ["start", "end"]}}
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": ["impression", "action", "event", "replay"]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {
+          "operation": {
+            "const": "instant"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"kind": {"const": "session"}},
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/sessionPayload"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"kind": {"const": "journey"}},
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/journeyPayload"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"kind": {"const": "page"}},
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/pagePayload"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"kind": {"const": "impression"}},
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/impressionPayload"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"kind": {"const": "action"}},
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/actionPayload"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"kind": {"const": "activity"}},
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/activityPayload"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"kind": {"const": "event"}},
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/eventPayload"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"kind": {"const": "replay"}},
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/replayPayload"}}
+      }
+    }
+  ],
+  "$defs": {
+    "uuidV7": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "uuidV4": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "uint64String": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    },
+    "opaqueId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "semanticName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+    },
+    "pageSegment": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+    },
+    "annotationKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)*$"
+    },
+    "annotationValue": {
+      "anyOf": [
+        {"type": "string", "maxLength": 4096},
+        {"type": "boolean"},
+        {"type": "number"},
+        {
+          "type": "array",
+          "maxItems": 64,
+          "items": {"type": "string", "maxLength": 4096}
+        },
+        {
+          "type": "array",
+          "maxItems": 64,
+          "items": {"type": "boolean"}
+        },
+        {
+          "type": "array",
+          "maxItems": 64,
+          "items": {"type": "number"}
+        }
+      ]
+    },
+    "attributes": {
+      "type": "object",
+      "maxProperties": 128,
+      "propertyNames": {"$ref": "#/$defs/annotationKey"},
+      "additionalProperties": {"$ref": "#/$defs/annotationValue"}
+    },
+    "tenant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["organization_id", "project_id", "environment_id"],
+      "properties": {
+        "organization_id": {"$ref": "#/$defs/opaqueId"},
+        "project_id": {"$ref": "#/$defs/opaqueId"},
+        "environment_id": {"$ref": "#/$defs/opaqueId"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platform", "installation_id"],
+      "properties": {
+        "platform": {"enum": ["apple", "android", "web", "server"]},
+        "installation_id": {"$ref": "#/$defs/uuidV4"},
+        "process_id": {"$ref": "#/$defs/uuidV4"},
+        "app_build": {"type": "string", "maxLength": 128}
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "anonymous_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "user_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "account_id": {"type": "string", "minLength": 1, "maxLength": 256}
+      }
+    },
+    "pageContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surface_id", "instance_id", "path", "path_instance_ids"],
+      "properties": {
+        "surface_id": {"$ref": "#/$defs/uuidV7"},
+        "instance_id": {"$ref": "#/$defs/uuidV7"},
+        "path": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {"$ref": "#/$defs/pageSegment"}
+        },
+        "path_instance_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {"$ref": "#/$defs/uuidV7"}
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session_id"],
+      "properties": {
+        "session_id": {"$ref": "#/$defs/uuidV7"},
+        "journey_id": {"$ref": "#/$defs/uuidV7"},
+        "replay_id": {"$ref": "#/$defs/uuidV7"},
+        "activity_id": {"$ref": "#/$defs/uuidV7"},
+        "page": {"$ref": "#/$defs/pageContext"}
+      }
+    },
+    "clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "occurred_at_unix_nano",
+        "observed_at_unix_nano",
+        "sequence_number"
+      ],
+      "properties": {
+        "occurred_at_unix_nano": {"$ref": "#/$defs/uint64String"},
+        "observed_at_unix_nano": {"$ref": "#/$defs/uint64String"},
+        "monotonic_nano": {"$ref": "#/$defs/uint64String"},
+        "boot_id": {"$ref": "#/$defs/uuidV4"},
+        "sequence_number": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "dependentRequired": {
+        "monotonic_nano": ["boot_id"],
+        "boot_id": ["monotonic_nano"]
+      }
+    },
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trace_id"],
+      "properties": {
+        "trace_id": {
+          "type": "string",
+          "pattern": "^(?!0{32}$)[0-9a-f]{32}$"
+        },
+        "span_id": {
+          "type": "string",
+          "pattern": "^(?!0{16}$)[0-9a-f]{16}$"
+        },
+        "parent_span_id": {
+          "type": "string",
+          "pattern": "^(?!0{16}$)[0-9a-f]{16}$"
+        },
+        "trace_flags": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{2}$"
+        },
+        "trace_state": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^(?:[a-z][a-z0-9_*/-]{0,255}|[a-z0-9][a-z0-9_*/-]{0,240}@[a-z][a-z0-9_*/-]{0,13})=[\u0020-\u002b\u002d\u002e-\u003c\u003e-\u007e]{0,255}[\u0021-\u002b\u002d\u002e-\u003c\u003e-\u007e](?:,(?:[a-z][a-z0-9_*/-]{0,255}|[a-z0-9][a-z0-9_*/-]{0,240}@[a-z][a-z0-9_*/-]{0,13})=[\u0020-\u002b\u002d\u002e-\u003c\u003e-\u007e]{0,255}[\u0021-\u002b\u002d\u002e-\u003c\u003e-\u007e]){0,31}$"
+        }
+      },
+      "dependentRequired": {
+        "parent_span_id": ["span_id"]
+      }
+    },
+    "instrumentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"$ref": "#/$defs/semanticName"},
+        "version": {"type": "string", "minLength": 1, "maxLength": 64},
+        "schema_url": {"type": "string", "format": "uri", "maxLength": 512}
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attributes"],
+      "properties": {
+        "attributes": {"$ref": "#/$defs/attributes"}
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_version",
+        "capture_class",
+        "consent",
+        "redaction_state",
+        "annotation_classifications"
+      ],
+      "properties": {
+        "policy_version": {"type": "string", "minLength": 1, "maxLength": 64},
+        "capture_class": {
+          "enum": ["essential", "analytics", "replay", "diagnostic"]
+        },
+        "consent": {
+          "enum": ["unknown", "granted", "denied", "not_required"]
+        },
+        "redaction_state": {
+          "enum": ["none", "applied", "blocked"]
+        },
+        "redaction_count": {"type": "integer", "minimum": 0},
+        "annotation_classifications": {
+          "type": "object",
+          "maxProperties": 128,
+          "propertyNames": {"$ref": "#/$defs/annotationKey"},
+          "additionalProperties": {
+            "enum": [
+              "public",
+              "internal",
+              "pseudonymous_identifier",
+              "personal_data"
+            ]
+          }
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["unset", "ok", "error", "cancelled", "timeout"]},
+        "reason_code": {"$ref": "#/$defs/semanticName"}
+      }
+    },
+    "sessionPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idle_timeout_nano": {"$ref": "#/$defs/uint64String"},
+        "end_reason": {
+          "enum": ["idle", "background", "terminated", "logout", "policy", "unknown"]
+        }
+      }
+    },
+    "journeyPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["definition"],
+      "properties": {
+        "definition": {"$ref": "#/$defs/semanticName"},
+        "step": {"$ref": "#/$defs/semanticName"}
+      }
+    },
+    "pagePayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "surface_id",
+        "instance_id",
+        "path",
+        "path_instance_ids",
+        "relation",
+        "exposure",
+        "focused",
+        "cause"
+      ],
+      "properties": {
+        "surface_id": {"$ref": "#/$defs/uuidV7"},
+        "instance_id": {"$ref": "#/$defs/uuidV7"},
+        "path": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {"$ref": "#/$defs/pageSegment"}
+        },
+        "path_instance_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {"$ref": "#/$defs/uuidV7"}
+        },
+        "relation": {
+          "enum": ["root", "push", "tab", "split", "sheet", "popover", "overlay", "cover"]
+        },
+        "exposure": {
+          "enum": ["foreground", "visible", "occluded", "retained"]
+        },
+        "focused": {"type": "boolean"},
+        "cause": {
+          "enum": [
+            "initial",
+            "navigate",
+            "back",
+            "selection",
+            "present",
+            "dismiss",
+            "replace",
+            "deep_link",
+            "restore",
+            "adaptive",
+            "background",
+            "foreground",
+            "surface_destroyed"
+          ]
+        },
+        "navigation_id": {"$ref": "#/$defs/uuidV7"},
+        "visibility_ratio": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "impressionPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["element_id", "role", "visibility_ratio"],
+      "properties": {
+        "element_id": {"$ref": "#/$defs/semanticName"},
+        "role": {"$ref": "#/$defs/semanticName"},
+        "visibility_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+        "visible_duration_nano": {"$ref": "#/$defs/uint64String"}
+      }
+    },
+    "actionPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["element_id", "role", "activation", "input"],
+      "properties": {
+        "element_id": {"$ref": "#/$defs/semanticName"},
+        "role": {"$ref": "#/$defs/semanticName"},
+        "activation": {
+          "enum": ["primary", "submit", "toggle", "selection", "adjust", "gesture", "system"]
+        },
+        "input": {
+          "enum": ["touch", "pointer", "keyboard", "remote", "accessibility", "voice", "system", "unknown"]
+        }
+      }
+    },
+    "activityPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["activity_kind", "role", "attempt", "recursion_depth"],
+      "properties": {
+        "activity_kind": {
+          "enum": ["ui", "domain", "network", "storage", "task", "custom"]
+        },
+        "role": {"enum": ["operation", "attempt"]},
+        "attempt": {"type": "integer", "minimum": 1},
+        "recursion_depth": {"type": "integer", "minimum": 0},
+        "parent_activity_id": {"$ref": "#/$defs/uuidV7"}
+      }
+    },
+    "eventPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_class", "emission"],
+      "properties": {
+        "event_class": {
+          "enum": ["lifecycle", "domain", "error", "crash", "performance", "experiment", "custom"]
+        },
+        "severity": {
+          "enum": ["trace", "debug", "info", "warn", "error", "fatal"]
+        },
+        "emission": {
+          "enum": ["entered", "succeeded", "terminal", "observed"]
+        },
+        "deduplication_key_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "replayPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chunk_id",
+        "chunk_index",
+        "codec",
+        "starts_at_unix_nano",
+        "ends_at_unix_nano",
+        "sha256",
+        "byte_count",
+        "storage_ref"
+      ],
+      "properties": {
+        "chunk_id": {"$ref": "#/$defs/uuidV7"},
+        "chunk_index": {"type": "integer", "minimum": 0},
+        "codec": {"const": "chill.structural.v1"},
+        "starts_at_unix_nano": {"$ref": "#/$defs/uint64String"},
+        "ends_at_unix_nano": {"$ref": "#/$defs/uint64String"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "byte_count": {"type": "integer", "minimum": 0},
+        "storage_ref": {"type": "string", "minLength": 1, "maxLength": 1024}
+      }
+    }
+  }
+}

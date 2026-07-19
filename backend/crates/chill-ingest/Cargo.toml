@@ -1,0 +1,36 @@
+[package]
+name = "chill-ingest"
+description = "Authenticated durable OTLP and replay ingestion for Chill"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+axum.workspace = true
+bytes.workspace = true
+chill-control-plane = { path = "../chill-control-plane" }
+flate2.workspace = true
+hex.workspace = true
+opentelemetry-proto.workspace = true
+prost.workspace = true
+prost-types.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+sqlx = { workspace = true, features = ["json", "time"] }
+thiserror.workspace = true
+time.workspace = true
+tokio.workspace = true
+tonic.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+anyhow.workspace = true
+chill-migrations = { path = "../chill-migrations" }
+uuid.workspace = true
+tower.workspace = true

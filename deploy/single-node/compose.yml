@@ -1,0 +1,363 @@
+name: chill-single-node
+
+x-chill-image: &chill-image
+  image: ${CHILL_IMAGE:-chill:local}
+
+x-chill-environment: &chill-environment
+  CHILL_KEY_PEPPER_FILE: /run/secrets/key_pepper
+  CHILL_OBJECT_STORE_BACKEND: s3
+  CHILL_S3_ENDPOINT: http://minio:9000
+  CHILL_S3_BUCKET: chill
+  CHILL_S3_REGION: us-east-1
+  CHILL_S3_PATH_STYLE: "true"
+  CHILL_QUERY_CACHE_PATH: /var/lib/chill/query-cache
+  AWS_SHARED_CREDENTIALS_FILE: /run/secrets/s3_credentials
+  AWS_EC2_METADATA_DISABLED: "true"
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:18.4-alpine3.24@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chill
+      POSTGRES_USER: chill_admin
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chill_admin -d chill"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    stop_grace_period: 30s
+    mem_limit: 1280m
+    cpus: 1.0
+    pids_limit: 256
+    security_opt:
+      - no-new-privileges:true
+
+  minio:
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e}
+    command: ["server", "/data"]
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER_FILE: /run/secrets/minio_user
+      MINIO_ROOT_PASSWORD_FILE: /run/secrets/minio_password
+    secrets:
+      - minio_user
+      - minio_password
+    volumes:
+      - object-data:/data
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    stop_grace_period: 30s
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+
+  minio-init:
+    image: ${MINIO_MC_IMAGE:-minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727}
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        mc alias set local http://minio:9000 "$$(cat /run/secrets/minio_user)" "$$(cat /run/secrets/minio_password)" >/dev/null;
+        mc mb --ignore-existing local/chill;
+        mc version enable local/chill;
+        mc anonymous set none local/chill
+    depends_on:
+      minio:
+        condition: service_healthy
+    secrets:
+      - minio_user
+      - minio_password
+    networks:
+      - data
+    restart: "no"
+    mem_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
+
+  storage-init:
+    <<: *chill-image
+    network_mode: none
+    user: "0:0"
+    entrypoint: ["/usr/local/bin/chillctl"]
+    command: ["init-query-cache"]
+    volumes:
+      - query-cache:/var/lib/chill/query-cache
+    read_only: true
+    restart: "no"
+    mem_limit: 64m
+    cpus: 0.25
+    pids_limit: 32
+    security_opt:
+      - no-new-privileges:true
+
+  migrate:
+    <<: *chill-image
+    entrypoint: ["/usr/local/bin/chillctl"]
+    command: ["migrate-and-provision"]
+    environment:
+      CHILL_DATABASE_URL_FILE: /run/secrets/admin_database_url
+      CHILL_RUNTIME_DATABASE_PASSWORD_FILE: /run/secrets/runtime_database_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    secrets:
+      - admin_database_url
+      - runtime_database_password
+    networks:
+      - data
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    restart: "no"
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
+
+  chilld:
+    <<: *chill-image
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile
+      args:
+        CHILL_VERSION: ${CHILL_VERSION:-dev}
+        CHILL_COMMIT: ${CHILL_COMMIT:-unknown}
+        CHILL_BUILD_TIME: ${CHILL_BUILD_TIME:-unknown}
+    restart: unless-stopped
+    environment:
+      <<: *chill-environment
+      CHILL_DATABASE_URL_FILE: /run/secrets/runtime_database_url
+      CHILL_LISTEN_ADDRESS: 0.0.0.0:4318
+      CHILL_LIFECYCLE_ENABLED: "true"
+      CHILL_CONSOLE_ORIGIN: ${CHILL_CONSOLE_ORIGIN:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      storage-init:
+        condition: service_completed_successfully
+    secrets:
+      - runtime_database_url
+      - key_pepper
+      - s3_credentials
+    volumes:
+      - query-cache:/var/lib/chill/query-cache
+    networks:
+      - edge
+      - data
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/chillctl", "health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+    stop_grace_period: 20s
+    mem_limit: 1536m
+    cpus: 1.5
+    pids_limit: 256
+    security_opt:
+      - no-new-privileges:true
+
+  console:
+    image: ${CHILL_CONSOLE_IMAGE:-chill-console:local}
+    build:
+      context: ../..
+      dockerfile: console/Dockerfile
+    restart: unless-stopped
+    networks:
+      - edge
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+      - /config:size=16m,mode=0755
+      - /data:size=16m,mode=0755
+    mem_limit: 64m
+    cpus: 0.25
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    image: ${CADDY_IMAGE:-caddy:2.10.2-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d}
+    restart: unless-stopped
+    environment:
+      CHILL_DOMAIN: ${CHILL_DOMAIN:-localhost}
+    depends_on:
+      chilld:
+        condition: service_healthy
+      console:
+        condition: service_started
+    ports:
+      - "${CHILL_HTTP_BIND:-127.0.0.1}:${CHILL_HTTP_PORT:-8080}:80"
+      - "${CHILL_HTTPS_BIND:-127.0.0.1}:${CHILL_HTTPS_PORT:-8443}:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - edge
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    mem_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
+
+  chillctl:
+    <<: *chill-image
+    profiles: ["ops"]
+    entrypoint: ["/usr/local/bin/chillctl"]
+    environment:
+      <<: *chill-environment
+      CHILL_DATABASE_URL_FILE: /run/secrets/admin_database_url
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    secrets:
+      - admin_database_url
+      - key_pepper
+      - s3_credentials
+    volumes:
+      - query-cache:/var/lib/chill/query-cache
+    networks:
+      - data
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    mem_limit: 1280m
+    cpus: 1.0
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+
+  object-backup:
+    image: ${MINIO_MC_IMAGE:-minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727}
+    profiles: ["ops"]
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        test -n "$${BACKUP_NAME}";
+        mc alias set local http://minio:9000 "$$(cat /run/secrets/minio_user)" "$$(cat /run/secrets/minio_password)" >/dev/null;
+        mkdir -p "/backup/$${BACKUP_NAME}/objects";
+        mc mirror --overwrite --preserve local/chill "/backup/$${BACKUP_NAME}/objects"
+    environment:
+      BACKUP_NAME: ${BACKUP_NAME:-}
+      MC_CONFIG_DIR: /tmp/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    secrets:
+      - minio_user
+      - minio_password
+    volumes:
+      - ${CHILL_BACKUP_DIR:-./backups}:/backup
+    networks:
+      - data
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
+
+  object-restore:
+    image: ${MINIO_MC_IMAGE:-minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727}
+    profiles: ["ops"]
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        test -n "$${BACKUP_NAME}";
+        test -n "$${RESTORE_BUCKET}";
+        mc alias set local http://minio:9000 "$$(cat /run/secrets/minio_user)" "$$(cat /run/secrets/minio_password)" >/dev/null;
+        if [ "$${CLEAR_RESTORE_BUCKET}" = "true" ]; then mc rm --recursive --force --versions "local/$${RESTORE_BUCKET}" >/dev/null 2>&1 || true; fi;
+        mc mb --ignore-existing "local/$${RESTORE_BUCKET}";
+        mc mirror --overwrite --preserve "/backup/$${BACKUP_NAME}/objects" "local/$${RESTORE_BUCKET}";
+        if [ "$${DRILL_CLEANUP}" = "true" ]; then
+          if ! differences="$$(mc diff "/backup/$${BACKUP_NAME}/objects" "local/$${RESTORE_BUCKET}")"; then exit 1; fi;
+          test -z "$${differences}";
+          mc rm --recursive --force --versions "local/$${RESTORE_BUCKET}" >/dev/null;
+          mc rb "local/$${RESTORE_BUCKET}" >/dev/null;
+        fi
+    environment:
+      BACKUP_NAME: ${BACKUP_NAME:-}
+      RESTORE_BUCKET: ${RESTORE_BUCKET:-}
+      CLEAR_RESTORE_BUCKET: ${CLEAR_RESTORE_BUCKET:-false}
+      DRILL_CLEANUP: ${DRILL_CLEANUP:-false}
+      MC_CONFIG_DIR: /tmp/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    secrets:
+      - minio_user
+      - minio_password
+    volumes:
+      - ${CHILL_BACKUP_DIR:-./backups}:/backup:ro
+    networks:
+      - data
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
+
+secrets:
+  postgres_password:
+    file: ./.secrets/postgres_password
+  runtime_database_password:
+    file: ./.secrets/runtime_database_password
+  admin_database_url:
+    file: ./.secrets/admin_database_url
+  runtime_database_url:
+    file: ./.secrets/runtime_database_url
+  key_pepper:
+    file: ./.secrets/key_pepper
+  minio_user:
+    file: ./.secrets/minio_user
+  minio_password:
+    file: ./.secrets/minio_password
+  s3_credentials:
+    file: ./.secrets/s3_credentials
+
+volumes:
+  postgres-data:
+  object-data:
+  query-cache:
+  caddy-data:
+  caddy-config:
+
+networks:
+  edge:
+  data:
+    internal: true

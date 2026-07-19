@@ -1,0 +1,15 @@
+:8080 {
+	root * /srv
+	try_files {path} /index.html
+	encode zstd gzip
+
+	header {
+		-Server
+		Content-Security-Policy "default-src 'self'; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+		Referrer-Policy "no-referrer"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+	}
+
+	file_server
+}

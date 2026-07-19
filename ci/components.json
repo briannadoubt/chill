@@ -1,0 +1,61 @@
+{
+  "components": [
+    {
+      "id": "contract",
+      "owners": ["platform"],
+      "paths": [
+        "budgets",
+        "conformance",
+        "contracts",
+        "examples/behavior",
+        "examples/otlp",
+        "policies",
+        "schemas"
+      ],
+      "release_artifact": "contracts",
+      "state": "active",
+      "versioning": "contract-major"
+    },
+    {
+      "id": "backend",
+      "owners": ["platform"],
+      "paths": ["backend", "deploy/single-node"],
+      "release_artifact": "oci-image",
+      "state": "active",
+      "versioning": "coordinated"
+    },
+    {
+      "id": "swift",
+      "owners": ["apple"],
+      "paths": ["sdk/swift", "validation/apple"],
+      "release_artifact": "swift-source-archive",
+      "state": "active",
+      "versioning": "coordinated"
+    },
+    {
+      "id": "console",
+      "owners": ["product", "platform"],
+      "paths": ["console"],
+      "release_artifact": "console-image",
+      "state": "active",
+      "versioning": "coordinated"
+    },
+    {
+      "id": "android",
+      "owners": ["android"],
+      "paths": ["sdk/android"],
+      "release_artifact": "android-package",
+      "state": "active",
+      "versioning": "coordinated"
+    },
+    {
+      "id": "web",
+      "owners": ["web"],
+      "paths": ["sdk/web"],
+      "release_artifact": "npm-package",
+      "state": "active",
+      "versioning": "coordinated"
+    }
+  ],
+  "format": "chill-component-registry-v1"
+}

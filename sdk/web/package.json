@@ -1,0 +1,59 @@
+{
+  "name": "@chill-observability/browser",
+  "version": "0.1.0",
+  "description": "Declarative, privacy-first Chill instrumentation for browsers and React",
+  "homepage": "https://github.com/briannadoubt/chill/tree/main/sdk/web",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/briannadoubt/chill.git",
+    "directory": "sdk/web"
+  },
+  "bugs": {
+    "url": "https://github.com/briannadoubt/chill/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "rm -rf dist-tests && tsc -p tsconfig.tests.json && node --test dist-tests/tests/*.test.js",
+    "bundle-budget": "npm run build && node scripts/check-bundle-budget.mjs",
+    "benchmark": "npm run build && node scripts/benchmark.mjs"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/jsdom": "^28.0.3",
+    "@types/node": "24.0.15",
+    "@types/react": "19.1.8",
+    "jsdom": "26.1.0",
+    "react": "19.1.0",
+    "typescript": "5.8.3"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "Apache-2.0"
+}

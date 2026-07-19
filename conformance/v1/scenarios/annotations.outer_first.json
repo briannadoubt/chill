@@ -1,0 +1,70 @@
+{
+  "suite_version": "1.0.0",
+  "id": "annotations.outer_first",
+  "domain": "annotations",
+  "layers": ["model", "adapter", "wire"],
+  "description": "The earliest outer declaration wins across root, page, and action scopes.",
+  "given": {
+    "scopes": [
+      {
+        "scope_id": "root",
+        "depth": 0,
+        "declarations": [
+          {"key": "account.tier", "value": "enterprise"},
+          {"key": "experiment.cohorts", "value": ["search_a", "checkout_b"]}
+        ]
+      },
+      {
+        "scope_id": "page.cat",
+        "depth": 1,
+        "declarations": [
+          {"key": "cat.id", "value": "cat_123"},
+          {"key": "account.tier", "value": "free"}
+        ]
+      },
+      {
+        "scope_id": "action.adopt",
+        "depth": 2,
+        "declarations": [
+          {"key": "cat.id", "value": "cat_999"},
+          {"key": "account.tier", "value": "enterprise"},
+          {"key": "action.intent", "value": "adopt"}
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "values": {
+      "account.tier": "enterprise",
+      "experiment.cohorts": ["search_a", "checkout_b"],
+      "cat.id": "cat_123",
+      "action.intent": "adopt"
+    },
+    "origins": {
+      "account.tier": {"scope_id": "root", "depth": 0, "declaration_index": 0},
+      "experiment.cohorts": {"scope_id": "root", "depth": 0, "declaration_index": 1},
+      "cat.id": {"scope_id": "page.cat", "depth": 1, "declaration_index": 0},
+      "action.intent": {"scope_id": "action.adopt", "depth": 2, "declaration_index": 2}
+    },
+    "collisions": [
+      {
+        "key": "account.tier",
+        "winner": {"scope_id": "root", "depth": 0, "declaration_index": 0},
+        "loser": {"scope_id": "page.cat", "depth": 1, "declaration_index": 1},
+        "identical": false
+      },
+      {
+        "key": "cat.id",
+        "winner": {"scope_id": "page.cat", "depth": 1, "declaration_index": 0},
+        "loser": {"scope_id": "action.adopt", "depth": 2, "declaration_index": 0},
+        "identical": false
+      },
+      {
+        "key": "account.tier",
+        "winner": {"scope_id": "root", "depth": 0, "declaration_index": 0},
+        "loser": {"scope_id": "action.adopt", "depth": 2, "declaration_index": 1},
+        "identical": true
+      }
+    ]
+  }
+}

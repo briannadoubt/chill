@@ -1,0 +1,79 @@
+{
+  "idempotency_key": "chill-swift-backend-e2e-v1",
+  "organization": {
+    "slug": "swift-backend-e2e",
+    "name": "Swift Backend E2E"
+  },
+  "project": {
+    "slug": "swift-e2e",
+    "name": "Swift E2E"
+  },
+  "environment": {
+    "slug": "test",
+    "name": "Test",
+    "kind": "test",
+    "retention_days": 7
+  },
+  "data_source": {
+    "name": "Swift E2E",
+    "kind": "apple"
+  },
+  "owner": {
+    "email": "swift-e2e@example.com",
+    "display_name": "Swift E2E"
+  },
+  "schema": {
+    "version": "1.0.0",
+    "url": "https://schemas.chill.dev/behavior/v1/envelope.schema.json",
+    "definition": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object"
+    },
+    "compatibility": "exact"
+  },
+  "sampling": {
+    "behavior_numerator": 1,
+    "behavior_denominator": 1,
+    "replay_numerator": 0,
+    "replay_denominator": 1,
+    "salt_version": "v1"
+  },
+  "privacy": {
+    "document": {
+      "schema_version": "1.0.0",
+      "policy_version": "backend-e2e-v1",
+      "default_disposition": "omit",
+      "annotation_allowlist": {},
+      "source_allowlist": [
+        "app_build",
+        "app_version",
+        "os_name",
+        "os_version",
+        "platform"
+      ],
+      "replay": {
+        "mask_at_source": true,
+        "text": "mask",
+        "form_values": "mask",
+        "accessibility_text": "mask",
+        "secure_input": "mask",
+        "pixels": "mask",
+        "custom_drawing": "block"
+      }
+    }
+  },
+  "quota": {
+    "requests_per_minute": 60,
+    "records_per_minute": 1000,
+    "replay_bytes_per_day": 10485760,
+    "query_concurrency": 1,
+    "query_scan_bytes": 1048576
+  },
+  "sdk_key": {
+    "name": "Swift E2E SDK",
+    "scopes": [
+      "ingest:otlp",
+      "ingest:replay"
+    ]
+  }
+}

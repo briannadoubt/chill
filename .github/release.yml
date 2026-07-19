@@ -1,0 +1,26 @@
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+  categories:
+    - title: Breaking changes
+      labels:
+        - breaking-change
+    - title: SDKs
+      labels:
+        - sdk
+        - swift
+        - android
+        - web
+    - title: Platform and data
+      labels:
+        - backend
+        - data-platform
+        - infrastructure
+    - title: Security and privacy
+      labels:
+        - security
+        - privacy
+    - title: Other changes
+      labels:
+        - "*"

@@ -1,0 +1,624 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2A5C31B05892405FFBF49D17 /* ChillReplay in Frameworks */ = {isa = PBXBuildFile; productRef = 1B8445B33F62A15131C6CCAF /* ChillReplay */; };
+		2AB7CD334BFD521C0CB8CFF5 /* ChillPhysicalValidationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B1F542BF221BE3D3F4DD79C /* ChillPhysicalValidationUITests.swift */; };
+		BB1A3EFDACBB7D5A4ADB3C72 /* ChillPhysicalValidationApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BD7B62CC7B8DF8D69069BD /* ChillPhysicalValidationApp.swift */; };
+		D3364D68FA13522DA4AC1EA6 /* ChillPhysicalValidationApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BD7B62CC7B8DF8D69069BD /* ChillPhysicalValidationApp.swift */; };
+		D8B0AF8205596842DFD329A1 /* ChillPhysicalValidationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B1F542BF221BE3D3F4DD79C /* ChillPhysicalValidationUITests.swift */; };
+		D963B1E0ADEC0BE854A00E33 /* Chill in Frameworks */ = {isa = PBXBuildFile; productRef = 833D240791D92A212B16CCDC /* Chill */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		019D0FE8186C25AA151DE851 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9F3DF07A9ABA301D8524B188 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 24ADB2C1A3ABC70496E60CD7;
+			remoteInfo = ChillPhysicalBaseline;
+		};
+		7F20C569FD7E7A899C923FAB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9F3DF07A9ABA301D8524B188 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EB109EFE2774315F91D8B595;
+			remoteInfo = ChillPhysicalCandidate;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0B1F542BF221BE3D3F4DD79C /* ChillPhysicalValidationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChillPhysicalValidationUITests.swift; sourceTree = "<group>"; };
+		42E629E0EDD4FDCA2AC2626D /* ChillPhysicalCandidateUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ChillPhysicalCandidateUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4DFA1BCC2C214B4CE8688ACB /* ChillPhysicalBaseline.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ChillPhysicalBaseline.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		778A979E1CD493ABE0F83EC7 /* ChillPhysicalCandidate.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ChillPhysicalCandidate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		78BD7B62CC7B8DF8D69069BD /* ChillPhysicalValidationApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChillPhysicalValidationApp.swift; sourceTree = "<group>"; };
+		A00911563131F33779ECE1F8 /* ChillPhysicalBaselineUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ChillPhysicalBaselineUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C85B21A158E415589ADEEBC8 /* swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift; path = ../../../sdk/swift; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		50DD4037D98504D002224673 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D963B1E0ADEC0BE854A00E33 /* Chill in Frameworks */,
+				2A5C31B05892405FFBF49D17 /* ChillReplay in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		11693DFAD7546A6479DBB892 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				0B1F542BF221BE3D3F4DD79C /* ChillPhysicalValidationUITests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
+		1E789371DB8E86F17F843C86 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				C85B21A158E415589ADEEBC8 /* swift */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		959CE9CFD917B3684D94248D /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				78BD7B62CC7B8DF8D69069BD /* ChillPhysicalValidationApp.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		BD84DFAE78C8EB54724CE1B3 = {
+			isa = PBXGroup;
+			children = (
+				1E789371DB8E86F17F843C86 /* Packages */,
+				959CE9CFD917B3684D94248D /* Sources */,
+				11693DFAD7546A6479DBB892 /* UITests */,
+				FDC5591DC3D0D5C0D3D574D1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FDC5591DC3D0D5C0D3D574D1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4DFA1BCC2C214B4CE8688ACB /* ChillPhysicalBaseline.app */,
+				A00911563131F33779ECE1F8 /* ChillPhysicalBaselineUITests.xctest */,
+				778A979E1CD493ABE0F83EC7 /* ChillPhysicalCandidate.app */,
+				42E629E0EDD4FDCA2AC2626D /* ChillPhysicalCandidateUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2455DF56C32275D628AA6C37 /* ChillPhysicalBaselineUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F163004DCD882FD8D06F3EF4 /* Build configuration list for PBXNativeTarget "ChillPhysicalBaselineUITests" */;
+			buildPhases = (
+				F578DF36099661DEF3F256DA /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4C3B7D9E6C05179E3CAA2A56 /* PBXTargetDependency */,
+			);
+			name = ChillPhysicalBaselineUITests;
+			packageProductDependencies = (
+			);
+			productName = ChillPhysicalBaselineUITests;
+			productReference = A00911563131F33779ECE1F8 /* ChillPhysicalBaselineUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		24ADB2C1A3ABC70496E60CD7 /* ChillPhysicalBaseline */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 63A2B5201888FD6FFB77FDF5 /* Build configuration list for PBXNativeTarget "ChillPhysicalBaseline" */;
+			buildPhases = (
+				383D49AAD5EFCC626F2D3D1A /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ChillPhysicalBaseline;
+			packageProductDependencies = (
+			);
+			productName = ChillPhysicalBaseline;
+			productReference = 4DFA1BCC2C214B4CE8688ACB /* ChillPhysicalBaseline.app */;
+			productType = "com.apple.product-type.application";
+		};
+		36A0A5187845980BBB257130 /* ChillPhysicalCandidateUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2DE751C1A7CF08EC0EA75960 /* Build configuration list for PBXNativeTarget "ChillPhysicalCandidateUITests" */;
+			buildPhases = (
+				5AE5F1320180ED1F096DFAC3 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F2787E0D7DFC1B8616A7ABD0 /* PBXTargetDependency */,
+			);
+			name = ChillPhysicalCandidateUITests;
+			packageProductDependencies = (
+			);
+			productName = ChillPhysicalCandidateUITests;
+			productReference = 42E629E0EDD4FDCA2AC2626D /* ChillPhysicalCandidateUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		EB109EFE2774315F91D8B595 /* ChillPhysicalCandidate */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 146694D3682CB3850E25A2FB /* Build configuration list for PBXNativeTarget "ChillPhysicalCandidate" */;
+			buildPhases = (
+				E0F6FEC81EACD4AE346D6B65 /* Sources */,
+				50DD4037D98504D002224673 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ChillPhysicalCandidate;
+			packageProductDependencies = (
+				833D240791D92A212B16CCDC /* Chill */,
+				1B8445B33F62A15131C6CCAF /* ChillReplay */,
+			);
+			productName = ChillPhysicalCandidate;
+			productReference = 778A979E1CD493ABE0F83EC7 /* ChillPhysicalCandidate.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9F3DF07A9ABA301D8524B188 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					2455DF56C32275D628AA6C37 = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = 24ADB2C1A3ABC70496E60CD7;
+					};
+					24ADB2C1A3ABC70496E60CD7 = {
+						ProvisioningStyle = Automatic;
+					};
+					36A0A5187845980BBB257130 = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = EB109EFE2774315F91D8B595;
+					};
+					EB109EFE2774315F91D8B595 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 88F52A50CC8EC13E4F53E788 /* Build configuration list for PBXProject "ChillPhysicalValidation" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = BD84DFAE78C8EB54724CE1B3;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A41E48501969218FB18DA558 /* XCLocalSwiftPackageReference "../../../sdk/swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = FDC5591DC3D0D5C0D3D574D1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				24ADB2C1A3ABC70496E60CD7 /* ChillPhysicalBaseline */,
+				2455DF56C32275D628AA6C37 /* ChillPhysicalBaselineUITests */,
+				EB109EFE2774315F91D8B595 /* ChillPhysicalCandidate */,
+				36A0A5187845980BBB257130 /* ChillPhysicalCandidateUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		383D49AAD5EFCC626F2D3D1A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3364D68FA13522DA4AC1EA6 /* ChillPhysicalValidationApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5AE5F1320180ED1F096DFAC3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2AB7CD334BFD521C0CB8CFF5 /* ChillPhysicalValidationUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E0F6FEC81EACD4AE346D6B65 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB1A3EFDACBB7D5A4ADB3C72 /* ChillPhysicalValidationApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F578DF36099661DEF3F256DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D8B0AF8205596842DFD329A1 /* ChillPhysicalValidationUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4C3B7D9E6C05179E3CAA2A56 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 24ADB2C1A3ABC70496E60CD7 /* ChillPhysicalBaseline */;
+			targetProxy = 019D0FE8186C25AA151DE851 /* PBXContainerItemProxy */;
+		};
+		F2787E0D7DFC1B8616A7ABD0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EB109EFE2774315F91D8B595 /* ChillPhysicalCandidate */;
+			targetProxy = 7F20C569FD7E7A899C923FAB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1DF03866058D2F43AEEB8C7F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.chill.validation.physical.baseline-uitests";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CHILL_BASELINE";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ChillPhysicalBaseline;
+			};
+			name = Debug;
+		};
+		32B91CF862BD785ABCC6F4DB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.chill.validation.physical.candidate-uitests";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CHILL_CANDIDATE";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ChillPhysicalCandidate;
+			};
+			name = Debug;
+		};
+		3A5F11AEC1AA560432761206 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		6280DCCBD5778C2E11398739 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.chill.validation.physical.candidate-uitests";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CHILL_CANDIDATE";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ChillPhysicalCandidate;
+			};
+			name = Release;
+		};
+		89A19083604A060558F4D517 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		8FC42A1674A92835EC8FFA2B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Chill Baseline";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.chill.validation.physical.baseline;
+				PRODUCT_NAME = "Chill Physical Baseline";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CHILL_BASELINE";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		9016460322DA4653E9500B5B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Chill Candidate";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.chill.validation.physical.candidate;
+				PRODUCT_NAME = "Chill Physical Candidate";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CHILL_CANDIDATE";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		9BDB295A307DC8493C9DE2AE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Chill Candidate";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.chill.validation.physical.candidate;
+				PRODUCT_NAME = "Chill Physical Candidate";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CHILL_CANDIDATE";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		D65707B0565834EF8070DE6F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.chill.validation.physical.baseline-uitests";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CHILL_BASELINE";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ChillPhysicalBaseline;
+			};
+			name = Release;
+		};
+		FE6A0F9F8DC35DE283F2B0E2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Chill Baseline";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.chill.validation.physical.baseline;
+				PRODUCT_NAME = "Chill Physical Baseline";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CHILL_BASELINE";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		146694D3682CB3850E25A2FB /* Build configuration list for PBXNativeTarget "ChillPhysicalCandidate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9BDB295A307DC8493C9DE2AE /* Debug */,
+				9016460322DA4653E9500B5B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2DE751C1A7CF08EC0EA75960 /* Build configuration list for PBXNativeTarget "ChillPhysicalCandidateUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				32B91CF862BD785ABCC6F4DB /* Debug */,
+				6280DCCBD5778C2E11398739 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		63A2B5201888FD6FFB77FDF5 /* Build configuration list for PBXNativeTarget "ChillPhysicalBaseline" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8FC42A1674A92835EC8FFA2B /* Debug */,
+				FE6A0F9F8DC35DE283F2B0E2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		88F52A50CC8EC13E4F53E788 /* Build configuration list for PBXProject "ChillPhysicalValidation" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3A5F11AEC1AA560432761206 /* Debug */,
+				89A19083604A060558F4D517 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F163004DCD882FD8D06F3EF4 /* Build configuration list for PBXNativeTarget "ChillPhysicalBaselineUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DF03866058D2F43AEEB8C7F /* Debug */,
+				D65707B0565834EF8070DE6F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A41E48501969218FB18DA558 /* XCLocalSwiftPackageReference "../../../sdk/swift" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../../sdk/swift;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1B8445B33F62A15131C6CCAF /* ChillReplay */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ChillReplay;
+		};
+		833D240791D92A212B16CCDC /* Chill */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Chill;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 9F3DF07A9ABA301D8524B188 /* Project object */;
+}

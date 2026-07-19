@@ -1,0 +1,23 @@
+[
+  {
+    "capture_class" : "analytics",
+    "kind" : "activity",
+    "name" : "validation.load_cat",
+    "operation" : "start",
+    "outcome" : null
+  },
+  {
+    "capture_class" : "analytics",
+    "kind" : "event",
+    "name" : "validation.cat_loaded",
+    "operation" : "instant",
+    "outcome" : "succeeded"
+  },
+  {
+    "capture_class" : "analytics",
+    "kind" : "activity",
+    "name" : "validation.load_cat",
+    "operation" : "end",
+    "outcome" : "succeeded"
+  }
+]

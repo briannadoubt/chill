@@ -1,0 +1,49 @@
+app = "replace-with-your-chill-app"
+primary_region = "lax"
+kill_signal = "SIGTERM"
+kill_timeout = "30s"
+
+[build]
+  dockerfile = "backend/Dockerfile"
+
+[deploy]
+  release_command = "/bin/sh -ec 'export CHILL_DATABASE_URL=\"$CHILL_ADMIN_DATABASE_URL\"; exec /usr/local/bin/chillctl migrate'"
+  release_command_timeout = "10m"
+
+[env]
+  AWS_EC2_METADATA_DISABLED = "true"
+  CHILL_CONSOLE_ORIGIN = "https://console.example.com"
+  CHILL_DATABASE_RUNTIME_ROLE = "chill-app"
+  CHILL_LIFECYCLE_ENABLED = "true"
+  CHILL_LISTEN_ADDRESS = "0.0.0.0:4318"
+  CHILL_OBJECT_STORE_BACKEND = "s3"
+  CHILL_QUERY_CACHE_PATH = "/tmp/chill-query-cache"
+  CHILL_S3_BUCKET = "replace-with-your-private-bucket"
+  CHILL_S3_ENDPOINT = "https://s3.example.com"
+  CHILL_S3_PATH_STYLE = "false"
+  CHILL_S3_REGION = "auto"
+
+[http_service]
+  internal_port = 4318
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 50
+    hard_limit = 100
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "15s"
+    method = "GET"
+    path = "/readyz"
+    timeout = "5s"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "2gb"

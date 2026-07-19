@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.jar binary
+*.png binary
+*.tgz binary
+
+/.scope export-ignore
+/.github export-ignore
+/.gitignore export-ignore
+/.gitattributes export-ignore
+/validation/apple/physical/evidence export-ignore

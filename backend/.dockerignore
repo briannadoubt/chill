@@ -1,0 +1,6 @@
+.chill-data
+*.dump
+*.log
+compose*.yml
+testdata
+target

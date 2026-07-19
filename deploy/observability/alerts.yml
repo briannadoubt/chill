@@ -1,0 +1,37 @@
+groups:
+  - name: chill-slo
+    interval: 30s
+    rules:
+      - alert: ChillIngestFastBurn
+        expr: |
+          (
+            sum(rate(chill_http_requests_total{surface="ingest",outcome="failed"}[1h]))
+            + sum(rate(chill_http_requests_total{surface="ingest",outcome="throttled"}[1h]))
+          ) / clamp_min(sum(rate(chill_http_requests_total{surface="ingest",outcome="total"}[1h])), 1) > (14.4 * 0.001)
+          and
+          (
+            sum(rate(chill_http_requests_total{surface="ingest",outcome="failed"}[6h]))
+            + sum(rate(chill_http_requests_total{surface="ingest",outcome="throttled"}[6h]))
+          ) / clamp_min(sum(rate(chill_http_requests_total{surface="ingest",outcome="total"}[6h])), 1) > (6 * 0.001)
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: Chill ingest is consuming error budget rapidly
+          runbook: docs/operations/slo-and-alerting.md
+      - alert: ChillPostgresPoolSaturated
+        expr: chill_postgres_connections{state="idle"} == 0 and chill_postgres_connections{state="open"} >= 16
+        for: 10m
+        labels:
+          severity: ticket
+        annotations:
+          summary: Chill has no idle PostgreSQL connections
+          runbook: docs/operations/slo-and-alerting.md
+      - alert: ChillProcessDown
+        expr: chill_up != 1 or absent(chill_up)
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: Chill process metrics are unavailable
+          runbook: docs/operations/slo-and-alerting.md

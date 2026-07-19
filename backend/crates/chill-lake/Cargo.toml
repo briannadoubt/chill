@@ -1,0 +1,36 @@
+[package]
+name = "chill-lake"
+description = "Deterministic Parquet lake publication for Chill"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+arrow.workspace = true
+bytes.workspace = true
+chill-control-plane = { path = "../chill-control-plane" }
+chill-objects = { path = "../chill-objects" }
+hex.workspace = true
+parquet.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+sqlx = { workspace = true, features = ["json", "macros", "time"] }
+thiserror.workspace = true
+time.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+anyhow.workspace = true
+chill-migrations = { path = "../chill-migrations" }
+chill-ingest = { path = "../chill-ingest" }
+chill-normalize = { path = "../chill-normalize" }
+opentelemetry-proto.workspace = true
+prost.workspace = true
+uuid.workspace = true
+
+[lints]
+workspace = true

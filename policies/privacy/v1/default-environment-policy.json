@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "policy_version": "privacy-v1",
+  "default_disposition": "omit",
+  "annotation_allowlist": {
+    "account.tier": "internal",
+    "app.area": "internal",
+    "build.channel": "internal",
+    "cat.id": "pseudonymous_identifier",
+    "release.channel": "internal",
+    "validation.scope": "internal"
+  },
+  "source_allowlist": [
+    "app_build",
+    "app_version",
+    "os_name",
+    "os_version",
+    "platform"
+  ],
+  "replay": {
+    "mask_at_source": true,
+    "text": "mask",
+    "form_values": "mask",
+    "accessibility_text": "mask",
+    "secure_input": "mask",
+    "pixels": "mask",
+    "custom_drawing": "block"
+  }
+}

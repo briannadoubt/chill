@@ -1,0 +1,1 @@
+"""Repository CI contract tests."""

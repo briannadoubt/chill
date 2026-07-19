@@ -1,0 +1,70 @@
+{
+  "suite_version": "1.0.0",
+  "id": "actions.semantic_dedup",
+  "domain": "actions",
+  "layers": ["model", "adapter", "wire"],
+  "description": "Multiple framework callbacks for one native activation emit one action.",
+  "given": {
+    "observations": [
+      {
+        "native_activation_id": "activation-touch-1",
+        "record_id": "record-action-1",
+        "surface_id": "surface-main",
+        "element_instance_id": "button-adopt",
+        "name": "cat.adopt",
+        "role": "button",
+        "activation": "primary",
+        "input_kind": "touch"
+      },
+      {
+        "native_activation_id": "activation-touch-1",
+        "record_id": "record-action-duplicate",
+        "surface_id": "surface-main",
+        "element_instance_id": "button-adopt",
+        "name": "cat.adopt",
+        "role": "button",
+        "activation": "primary",
+        "input_kind": "touch"
+      },
+      {
+        "native_activation_id": "activation-accessibility-2",
+        "record_id": "record-action-2",
+        "surface_id": "surface-main",
+        "element_instance_id": "button-adopt",
+        "name": "cat.adopt",
+        "role": "button",
+        "activation": "primary",
+        "input_kind": "accessibility"
+      }
+    ]
+  },
+  "expect": {
+    "facts": [
+      {
+        "record_id": "record-action-1",
+        "name": "cat.adopt",
+        "role": "button",
+        "activation": "primary",
+        "input_kind": "touch",
+        "surface_id": "surface-main",
+        "element_instance_id": "button-adopt"
+      },
+      {
+        "record_id": "record-action-2",
+        "name": "cat.adopt",
+        "role": "button",
+        "activation": "primary",
+        "input_kind": "accessibility",
+        "surface_id": "surface-main",
+        "element_instance_id": "button-adopt"
+      }
+    ],
+    "diagnostics": [
+      {"observation_index": 1, "code": "action.duplicate_observation"}
+    ],
+    "deduplication_keys": [
+      ["surface-main", "activation-touch-1"],
+      ["surface-main", "activation-accessibility-2"]
+    ]
+  }
+}

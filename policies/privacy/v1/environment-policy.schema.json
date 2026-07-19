@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.chill.dev/privacy/v1/environment-policy.schema.json",
+  "title": "Chill environment privacy policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_version",
+    "default_disposition",
+    "annotation_allowlist",
+    "source_allowlist",
+    "replay"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "policy_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "default_disposition": { "const": "omit" },
+    "annotation_allowlist": {
+      "type": "object",
+      "maxProperties": 128,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)*$",
+        "maxLength": 128
+      },
+      "additionalProperties": {
+        "enum": [
+          "public",
+          "internal",
+          "pseudonymous_identifier",
+          "personal_data",
+          "sensitive_data",
+          "secret",
+          "credential"
+        ]
+      }
+    },
+    "source_allowlist": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "app_build",
+          "app_version",
+          "os_name",
+          "os_version",
+          "platform"
+        ]
+      }
+    },
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mask_at_source",
+        "text",
+        "form_values",
+        "accessibility_text",
+        "secure_input",
+        "pixels",
+        "custom_drawing"
+      ],
+      "properties": {
+        "mask_at_source": { "const": true },
+        "text": { "const": "mask" },
+        "form_values": { "const": "mask" },
+        "accessibility_text": { "const": "mask" },
+        "secure_input": { "const": "mask" },
+        "pixels": { "const": "mask" },
+        "custom_drawing": { "const": "block" }
+      }
+    }
+  }
+}

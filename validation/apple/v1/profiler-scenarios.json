@@ -1,0 +1,466 @@
+{
+  "schema_version": "2.0.0",
+  "profile": "apple.replay",
+  "budget_catalog": "budgets/sdk/v1/budgets.json",
+  "floor_device": {
+    "class": "oldest supported physical iPhone",
+    "allowed_models": ["iPhone XS", "iPhone XS Max", "iPhone XR"],
+    "platform": "iOS",
+    "minimum_os": "17.0",
+    "configuration": "release",
+    "thermal_state": "nominal",
+    "power": "unplugged"
+  },
+  "provenance_requirements": [
+    "candidate_identity",
+    "compiled_out_baseline_identity",
+    "budget_catalog_sha256",
+    "profiler_manifest_sha256",
+    "execution_plan_sha256",
+    "interleaving_seed",
+    "device_model",
+    "device_os_version",
+    "physical_device",
+    "build_mode",
+    "thermal_state",
+    "power_state",
+    "toolchain_version",
+    "raw_artifact_sha256"
+  ],
+  "interleaving": {
+    "algorithm": "sha256-seeded-fisher-yates-v1",
+    "variants": ["baseline", "candidate"],
+    "unit": "paired trial",
+    "randomize_each_pair": true,
+    "allow_sequential_variant_batches": false
+  },
+  "raw_evidence": {
+    "directory": "validation/apple/physical/evidence",
+    "git_ignored": true,
+    "observation_schema_version": "1.0.0",
+    "require_artifact_digests": true,
+    "allow_measurement_without_raw_artifact": false,
+    "sanitized_output_directory": "validation/apple/physical/attestations"
+  },
+  "scenarios": [
+    {
+      "id": "app_thinning",
+      "method": "apple.app_thinning_size",
+      "collector": "xcode_app_thinning_report",
+      "physical_device_required": false,
+      "paired": true,
+      "minimum_runs": 1,
+      "workload": "clean release archives of the compiled-out, core-enabled, and replay-enabled variants with app-thinning reports for every supported device variant",
+      "required_artifacts": ["baseline-app-thinning.plist", "candidate-app-thinning.plist", "candidate-replay-app-thinning.plist"],
+      "measurements": [
+        {
+          "id": "package.download_delta_bytes",
+          "unit": "byte",
+          "statistic": "max_paired_delta",
+          "minimum_samples": 1,
+          "sample_shape": "pair"
+        },
+        {
+          "id": "package.install_delta_bytes",
+          "unit": "byte",
+          "statistic": "max_paired_delta",
+          "minimum_samples": 1,
+          "sample_shape": "pair"
+        },
+        {
+          "id": "package.replay_download_delta_bytes",
+          "unit": "byte",
+          "statistic": "max_paired_delta",
+          "minimum_samples": 1,
+          "sample_shape": "pair"
+        }
+      ]
+    },
+    {
+      "id": "cold_launch",
+      "method": "apple.xctest_launch",
+      "collector": "xcodebuild_xcresult",
+      "xctest": "testReleaseColdLaunchSingleSample",
+      "physical_device_required": true,
+      "paired": true,
+      "minimum_runs": 30,
+      "workload": "randomly interleaved compiled-out and fully enabled cold launches, one launch per result bundle",
+      "required_artifacts": ["xcresult", "launch-signpost-export.json"],
+      "measurements": [
+        {
+          "id": "startup.p95_delta_ms",
+          "unit": "millisecond",
+          "statistic": "upper_ci_p95_paired_delta",
+          "minimum_samples": 30,
+          "sample_shape": "pair"
+        },
+        {
+          "id": "startup.longest_blocking_delta_ms",
+          "unit": "millisecond",
+          "statistic": "upper_ci_p99_paired_delta",
+          "minimum_samples": 30,
+          "sample_shape": "pair"
+        }
+      ]
+    },
+    {
+      "id": "core_hot_path",
+      "method": "apple.xctest_micro",
+      "collector": "xcodebuild_xcresult",
+      "xctest": "testCoreHotPathWorkload",
+      "physical_device_required": true,
+      "paired": true,
+      "minimum_runs": 20,
+      "iterations_per_run": 1000000,
+      "workload": "optimized batches of one million disabled declarations and enabled canonical captures with allocation metrics",
+      "required_artifacts": ["xcresult", "allocation-trace"],
+      "measurements": [
+        {
+          "id": "hot_path.disabled_p99_ns",
+          "unit": "nanosecond_per_call",
+          "statistic": "p99",
+          "minimum_samples": 20,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "hot_path.disabled_allocations_per_call",
+          "unit": "allocation_per_call",
+          "statistic": "max",
+          "minimum_samples": 20,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "hot_path.capture_sync_p99_us",
+          "unit": "microsecond_per_fact",
+          "statistic": "p99",
+          "minimum_samples": 20,
+          "sample_shape": "scalar"
+        }
+      ]
+    },
+    {
+      "id": "representative_sustained",
+      "method": "apple.sustained_ab",
+      "collector": "xcodebuild_xcresult_and_instruments",
+      "xctest": "testRepresentativeSustainedWorkload",
+      "physical_device_required": true,
+      "paired": true,
+      "minimum_runs": 5,
+      "duration_minutes": 30,
+      "workload": "deterministic browse, search, recycled scroll, navigation, background, foreground, networking, and submit journey averaging ten canonical facts per second",
+      "required_artifacts": ["xcresult", "time-profiler.trace", "file-activity.trace"],
+      "measurements": [
+        {
+          "id": "hot_path.main_thread_io_count",
+          "unit": "operation_count",
+          "statistic": "total",
+          "minimum_samples": 5,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "memory.steady_delta_bytes",
+          "unit": "byte",
+          "statistic": "upper_ci_mean_paired_delta",
+          "minimum_samples": 5,
+          "sample_shape": "pair"
+        },
+        {
+          "id": "cpu.typical_delta_percent",
+          "unit": "percent",
+          "statistic": "upper_ci_mean_paired_delta",
+          "minimum_samples": 5,
+          "sample_shape": "pair"
+        }
+      ]
+    },
+    {
+      "id": "power",
+      "method": "apple.power_profiler_ab",
+      "collector": "xcode_power_profiler",
+      "physical_device_required": true,
+      "paired": true,
+      "minimum_runs": 5,
+      "duration_minutes": 30,
+      "workload": "paired core and replay journeys on the same nominal, unplugged device with fixed display, endpoint, radio, and account state",
+      "required_artifacts": ["power-profiler.trace"],
+      "measurements": [
+        {
+          "id": "cpu.energy_delta_percent",
+          "unit": "percent",
+          "statistic": "upper_ci_mean_paired_delta",
+          "minimum_samples": 5,
+          "sample_shape": "pair"
+        },
+        {
+          "id": "replay.energy_delta_percent",
+          "unit": "percent",
+          "statistic": "upper_ci_mean_paired_delta",
+          "minimum_samples": 5,
+          "sample_shape": "pair"
+        }
+      ]
+    },
+    {
+      "id": "network",
+      "method": "apple.network_ab",
+      "collector": "instruments_network_and_controlled_endpoint",
+      "xctest": "testNetworkWorkload",
+      "physical_device_required": true,
+      "paired": true,
+      "minimum_runs": 10,
+      "workload": "ten 100-record compressed batches plus one ten-minute idle window under identical endpoint and radio conditions",
+      "required_artifacts": ["network.trace", "collector-request-log.json"],
+      "measurements": [
+        {
+          "id": "network.compressed_bytes_per_record",
+          "unit": "byte_per_record",
+          "statistic": "upper_ci_mean",
+          "minimum_samples": 10,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "network.idle_request_count",
+          "unit": "request_count_per_10_minute",
+          "statistic": "total",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        }
+      ]
+    },
+    {
+      "id": "queue_pressure",
+      "method": "apple.queue_stress",
+      "collector": "xcodebuild_xcresult_and_queue_snapshot",
+      "xctest": "testQueuePressureWorkload",
+      "physical_device_required": true,
+      "paired": true,
+      "minimum_runs": 5,
+      "duration_minutes": 30,
+      "burst_seconds": 10,
+      "workload": "100 records per second for 30 minutes, 1000 records per second for ten seconds, offline fill from 80 percent, process death at commit boundaries, lossy recovery, and duplicate accounting",
+      "required_artifacts": ["xcresult", "queue-snapshots.json", "collector-acknowledgements.json"],
+      "measurements": [
+        {
+          "id": "disk.queue_hard_cap_bytes",
+          "unit": "byte",
+          "statistic": "configured_max",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "disk.written_bytes_per_record",
+          "unit": "byte_per_record",
+          "statistic": "upper_ci_mean",
+          "minimum_samples": 5,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "reliability.high_value_drops_count",
+          "unit": "record_count",
+          "statistic": "total_at_rated_load",
+          "minimum_samples": 5,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "reliability.crash_hang_anr_count",
+          "unit": "incident_count",
+          "statistic": "total_at_rated_load",
+          "minimum_samples": 5,
+          "sample_shape": "scalar"
+        }
+      ]
+    },
+    {
+      "id": "privacy_canaries",
+      "method": "apple.privacy_canary",
+      "collector": "canary_scanner",
+      "xctest": "testPrivacyCanaryWorkload",
+      "physical_device_required": false,
+      "paired": false,
+      "minimum_runs": 20,
+      "workload": "seed a fresh non-dictionary canary in SwiftUI and UIKit text, secure input, accessibility, clipboard, URL, headers, body, errors, images, queues, replay, logs, diagnostics, denial, and revocation; scan memory, persistence, OTLP, replay, logs, crash output, and server rejects",
+      "required_artifacts": ["xcresult", "memory-scan.json", "storage-scan.json", "otlp-scan.json", "replay-scan.json", "diagnostic-scan.json"],
+      "measurements": [
+        {
+          "id": "privacy.ui_canary_leaks_count",
+          "unit": "canary_count",
+          "statistic": "total",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "privacy.network_canary_leaks_count",
+          "unit": "canary_count",
+          "statistic": "total",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "privacy.diagnostic_canary_leaks_count",
+          "unit": "canary_count",
+          "statistic": "total",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "privacy.implicit_text_capture_paths_count",
+          "unit": "code_path_count",
+          "statistic": "total",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "privacy.denied_outbound_bytes",
+          "unit": "byte",
+          "statistic": "total_after_denial",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "privacy.denied_persisted_bytes",
+          "unit": "byte",
+          "statistic": "total_after_denial",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "privacy.revocation_purge_p95_ms",
+          "unit": "millisecond",
+          "statistic": "p95",
+          "minimum_samples": 20,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "privacy.replay_enabled_by_default",
+          "unit": "boolean_as_integer",
+          "statistic": "configured_value",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "privacy.unknown_classification_acceptances_count",
+          "unit": "acceptance_count",
+          "statistic": "total",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "replay.unredacted_frames_count",
+          "unit": "frame_count",
+          "statistic": "total",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "replay.serialized_canary_leaks_count",
+          "unit": "canary_count",
+          "statistic": "total",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "replay.raw_sensitive_buffer_bytes",
+          "unit": "byte",
+          "statistic": "max",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        }
+      ]
+    },
+    {
+      "id": "replay_journey",
+      "method": "apple.replay_ab",
+      "collector": "xcodebuild_xcresult_and_instruments",
+      "xctest": "testReplayJourneyWorkload",
+      "physical_device_required": true,
+      "paired": true,
+      "minimum_runs": 5,
+      "duration_minutes": 10,
+      "workload": "paired recycled scrolling, 60 and 120 Hz animation, navigation stacks, tabs, sheets, forms, images, web, custom drawing, backgrounding, reconnect, masking, and overload adaptation",
+      "required_artifacts": ["xcresult", "replay-signposts.json", "replay-chunk-inventory.json", "replay-network.trace"],
+      "measurements": [
+        {
+          "id": "replay.frame_capture_p95_ms",
+          "unit": "millisecond_per_frame",
+          "statistic": "p95",
+          "minimum_samples": 5,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "replay.frame_capture_p99_ms",
+          "unit": "millisecond_per_frame",
+          "statistic": "p99",
+          "minimum_samples": 5,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "replay.jank_delta_percentage_points",
+          "unit": "percentage_point",
+          "statistic": "upper_ci_p95_paired_delta",
+          "minimum_samples": 5,
+          "sample_shape": "pair"
+        },
+        {
+          "id": "replay.memory_delta_bytes",
+          "unit": "byte",
+          "statistic": "upper_ci_mean_paired_delta",
+          "minimum_samples": 5,
+          "sample_shape": "pair"
+        },
+        {
+          "id": "replay.cpu_delta_percent",
+          "unit": "percent",
+          "statistic": "upper_ci_mean_paired_delta",
+          "minimum_samples": 5,
+          "sample_shape": "pair"
+        },
+        {
+          "id": "replay.network_kib_per_minute",
+          "unit": "kibibyte_per_minute",
+          "statistic": "upper_ci_mean",
+          "minimum_samples": 5,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "replay.offline_disk_hard_cap_bytes",
+          "unit": "byte",
+          "statistic": "configured_max",
+          "minimum_samples": 1,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "replay.dropped_frames_percent",
+          "unit": "percent",
+          "statistic": "upper_ci_mean",
+          "minimum_samples": 5,
+          "sample_shape": "scalar"
+        },
+        {
+          "id": "replay.masking_p99_ms",
+          "unit": "millisecond_per_frame",
+          "statistic": "p99",
+          "minimum_samples": 5,
+          "sample_shape": "scalar"
+        }
+      ]
+    }
+  ],
+  "supplemental_scenarios": [
+    {
+      "id": "accessibility_activation",
+      "collector": "xcodebuild_xcresult",
+      "xctest": "testAccessibilityActivationWorkload",
+      "physical_device_required": true,
+      "paired": true,
+      "minimum_runs": 10,
+      "workload": "VoiceOver/native accessibility activation of SwiftUI and UIKit buttons, keyboard submit, switch, picker, segmented control, slider, and gesture alternatives",
+      "required_artifacts": ["xcresult", "accessibility-action-summary.json"],
+      "assertions": [
+        "semantic_actions_match_expected",
+        "duplicate_actions_equal_zero",
+        "missing_actions_equal_zero",
+        "accessibility_label_canary_leaks_equal_zero"
+      ]
+    }
+  ]
+}

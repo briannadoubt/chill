@@ -1,0 +1,104 @@
+{
+  "suite_version": "1.0.0",
+  "id": "navigation.stack_sheet",
+  "domain": "navigation",
+  "layers": ["model", "adapter", "wire"],
+  "description": "A stack path composes structurally and a sheet temporarily extends that path.",
+  "given": {
+    "surface_id": "surface-main",
+    "instance_ids": ["page-root", "page-cats", "page-cat", "page-sheet"],
+    "linear_path": [
+      {"segment": "app", "identity": "root", "relation": "root"},
+      {"segment": "cats", "identity": "cats", "relation": "push"},
+      {"segment": "cat", "identity": "cat:123", "relation": "push"}
+    ],
+    "presentation": {
+      "presenter_instance_id": "page-cat",
+      "instance_id": "page-sheet",
+      "segment": "adoption",
+      "identity": "adoption:123",
+      "relation": "sheet"
+    }
+  },
+  "expect": {
+    "transitions": [
+      {
+        "operation": "reconcile",
+        "delta": {
+          "started": ["page-root", "page-cats", "page-cat"],
+          "updated": [],
+          "ended": []
+        },
+        "exposed_paths": [
+          {
+            "surface_id": "surface-main",
+            "instance_id": "page-cat",
+            "instance_ids": ["page-root", "page-cats", "page-cat"],
+            "segments": ["app", "cats", "cat"],
+            "relation": "push",
+            "exposure": "foreground",
+            "focused": true
+          }
+        ]
+      },
+      {
+        "operation": "present",
+        "delta": {
+          "started": ["page-sheet"],
+          "updated": ["page-cat"],
+          "ended": []
+        },
+        "exposed_paths": [
+          {
+            "surface_id": "surface-main",
+            "instance_id": "page-cat",
+            "instance_ids": ["page-root", "page-cats", "page-cat"],
+            "segments": ["app", "cats", "cat"],
+            "relation": "push",
+            "exposure": "visible",
+            "focused": false
+          },
+          {
+            "surface_id": "surface-main",
+            "instance_id": "page-sheet",
+            "instance_ids": ["page-root", "page-cats", "page-cat", "page-sheet"],
+            "segments": ["app", "cats", "cat", "adoption"],
+            "relation": "sheet",
+            "exposure": "foreground",
+            "focused": true
+          }
+        ]
+      },
+      {
+        "operation": "dismiss",
+        "delta": {
+          "started": [],
+          "updated": ["page-cat"],
+          "ended": ["page-sheet"]
+        },
+        "exposed_paths": [
+          {
+            "surface_id": "surface-main",
+            "instance_id": "page-cat",
+            "instance_ids": ["page-root", "page-cats", "page-cat"],
+            "segments": ["app", "cats", "cat"],
+            "relation": "push",
+            "exposure": "foreground",
+            "focused": true
+          }
+        ]
+      }
+    ],
+    "primary_paths": [
+      {
+        "surface_id": "surface-main",
+        "instance_id": "page-cat",
+        "instance_ids": ["page-root", "page-cats", "page-cat"],
+        "segments": ["app", "cats", "cat"],
+        "relation": "push",
+        "exposure": "foreground",
+        "focused": true
+      }
+    ]
+  }
+}
