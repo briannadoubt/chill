@@ -163,7 +163,7 @@ jobs:
           file: backend/Dockerfile
           push: false
           tags: chill/backend:ci
-          build-args: CARGO_BUILD_JOBS=2
+          build-args: CARGO_BUILD_JOBS=4
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
