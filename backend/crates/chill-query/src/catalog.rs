@@ -101,8 +101,9 @@ impl Catalog {
         .bind(&scope.organization_id)
         .bind(&scope.project_id)
         .bind(&scope.environment_id)
-        .fetch_one(&mut *transaction)
-        .await?;
+        .fetch_optional(&mut *transaction)
+        .await?
+        .ok_or(CatalogError::ScopeNotFound)?;
         let maximum_scan_bytes = maximum_scan_bytes.min(quota_scan_bytes);
         let file_limit = i64::try_from(maximum_files)
             .map_err(|_| CatalogError::InvalidMetadata)?
