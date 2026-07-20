@@ -1,5 +1,7 @@
 import type { AnnotationPrimitive, BehaviorRecord } from "./types.js";
 
+const MAXIMUM_KEEPALIVE_BODY_BYTES = 60 * 1024;
+
 function otlpValue(value: AnnotationPrimitive): Record<string, unknown> {
   if (typeof value === "string") return { stringValue: value };
   if (typeof value === "boolean") return { boolValue: value };
@@ -31,13 +33,45 @@ function flatten(record: BehaviorRecord): Array<{ key: string; value: Record<str
   return Object.entries(attributes).map(([key, value]) => ({ key, value: otlpValue(value) }));
 }
 
+function encode(records: readonly BehaviorRecord[]): string {
+  return JSON.stringify({ resourceLogs: [{ resource: { attributes: [{ key: "service.name", value: { stringValue: "browser" } }, { key: "os.type", value: { stringValue: "web" } }] }, scopeLogs: [{ scope: { name: "dev.chill.web", version: "0.1.0" }, logRecords: records.map(record => ({ timeUnixNano: record.clock.wall_unix_nano, observedTimeUnixNano: record.clock.wall_unix_nano, eventName: record.name, traceId: record.trace?.traceId, spanId: record.trace?.spanId, flags: record.trace?.sampled ? 1 : 0, attributes: flatten(record) })) }] }] });
+}
+
+function boundedBody(records: readonly BehaviorRecord[]): { body: string; count: number; keepalive: boolean } {
+  let low = 1;
+  let high = records.length;
+  let selectedBody = "";
+  let selectedCount = 0;
+  while (low <= high) {
+    const count = Math.floor((low + high) / 2);
+    const body = encode(records.slice(0, count));
+    if (new TextEncoder().encode(body).byteLength <= MAXIMUM_KEEPALIVE_BODY_BYTES) {
+      selectedBody = body;
+      selectedCount = count;
+      low = count + 1;
+    } else {
+      high = count - 1;
+    }
+  }
+  if (selectedCount > 0) return { body: selectedBody, count: selectedCount, keepalive: true };
+  return { body: encode(records.slice(0, 1)), count: 1, keepalive: false };
+}
+
 export class OtlpExporter {
   constructor(private readonly endpoint: string, private readonly sdkKey: string, private readonly fetcher: typeof fetch = fetch) {}
-  async export(records: readonly BehaviorRecord[], signal?: AbortSignal): Promise<void> {
-    const payload = { resourceLogs: [{ resource: { attributes: [{ key: "service.name", value: { stringValue: "browser" } }, { key: "os.type", value: { stringValue: "web" } }] }, scopeLogs: [{ scope: { name: "dev.chill.web", version: "0.1.0" }, logRecords: records.map(record => ({ timeUnixNano: record.clock.wall_unix_nano, observedTimeUnixNano: record.clock.wall_unix_nano, eventName: record.name, traceId: record.trace?.traceId, spanId: record.trace?.spanId, flags: record.trace?.sampled ? 1 : 0, attributes: flatten(record) })) }] }] };
-    const init: RequestInit = { method: "POST", headers: { "authorization": `Bearer ${this.sdkKey}`, "content-type": "application/json", "x-chill-schema-version": "1.0.0" }, body: JSON.stringify(payload), keepalive: true };
+  async export(records: readonly BehaviorRecord[], signal?: AbortSignal): Promise<number> {
+    let batch: ReturnType<typeof boundedBody>;
+    try { batch = boundedBody(records); }
+    catch { throw new Error("Chill client failed during encoding"); }
+    const init: RequestInit = { method: "POST", headers: { "authorization": `Bearer ${this.sdkKey}`, "content-type": "application/json", "x-chill-schema-version": "1.0.0" }, body: batch.body, keepalive: batch.keepalive };
     if (signal) init.signal = signal;
-    const response = await this.fetcher(new URL("/v1/logs", this.endpoint), init);
+    let target: URL;
+    try { target = new URL("/v1/logs", this.endpoint); }
+    catch { throw new Error("Chill client failed during endpoint resolution"); }
+    let response: Response;
+    try { response = await this.fetcher.call(globalThis, target, init); }
+    catch { throw new Error("Chill client failed during transport"); }
     if (!response.ok) throw new Error(`Chill export failed with HTTP ${response.status}`);
+    return batch.count;
   }
 }

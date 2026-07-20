@@ -72,6 +72,53 @@ test("consent denial aborts an in-flight browser upload and clears the queue", a
   assert.equal(storage.getItem("chill.buffer.v1"), "[]");
 });
 
+test("flushes stay below the browser keepalive body limit and drain in bounded batches", async () => {
+  const dom = new JSDOM("", { url: "https://app.example/path" });
+  const storage = dom.window.localStorage;
+  const sizes: number[] = [];
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "granted", storage, allowedPayloadKeys: ["bulk"], fetch: async (_input, init) => {
+    sizes.push(new TextEncoder().encode(String(init?.body)).byteLength);
+    assert.equal(init?.keepalive, true);
+    return new Response(null, { status: 200 });
+  } });
+  for (let index = 0; index < 200; index += 1) client.event("load.sample", { bulk: "x".repeat(256) });
+  let exported = 0;
+  for (;;) {
+    const count = await client.flush();
+    if (count === 0) break;
+    exported += count;
+  }
+  assert.equal(exported, 201);
+  assert.ok(sizes.length > 1);
+  assert.ok(sizes.every(size => size <= 60 * 1024));
+});
+
+test("invalid restored records cannot permanently poison the durable queue", async () => {
+  const dom = new JSDOM("", { url: "https://app.example/path" });
+  const storage = dom.window.localStorage;
+  storage.setItem("chill.buffer.v1", JSON.stringify([{ clock: null, credential: "must-not-survive" }]));
+  let body = "";
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "granted", storage, fetch: async (_input, init) => {
+    body = String(init?.body);
+    return new Response(null, { status: 200 });
+  } });
+  client.event("queue.recovered");
+  assert.equal(await client.flush(), 2);
+  assert.doesNotMatch(body, /must-not-survive/);
+  assert.equal(storage.getItem("chill.buffer.v1"), "[]");
+});
+
+test("browser fetch is invoked with the global receiver", async () => {
+  let receiver: unknown;
+  const fetcher = async function (this: unknown): Promise<Response> {
+    receiver = this;
+    return new Response(null, { status: 200 });
+  } as typeof fetch;
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "v1", consent: "granted", fetch: fetcher });
+  assert.equal(await client.flush(), 1);
+  assert.equal(receiver, globalThis);
+});
+
 test("activity wrapper preserves return and records failure", async () => {
   const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "v1", consent: "granted", fetch: async () => new Response(null, { status: 200 }) });
   const add = instrumentActivity(client, "math.add", async (left: number, right: number) => left + right);
