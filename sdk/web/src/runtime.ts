@@ -122,9 +122,9 @@ export class ChillBrowser {
     const records = this.buffer.peek(200); if (records.length === 0) return 0;
     const controller = new AbortController(); this.currentFlush = controller;
     try {
-      await this.exporter.export(records, controller.signal);
+      const exported = await this.exporter.export(records, controller.signal);
       if (this.consent !== "granted") return 0;
-      this.buffer.remove(records.length); return records.length;
+      this.buffer.remove(exported); return exported;
     } catch (error) {
       if (controller.signal.aborted) return 0;
       throw error;
