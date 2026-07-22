@@ -223,11 +223,14 @@ package enum OTLPJSONEncoder {
       attributes["chill.context.replay_id"] = .string(value.replayID)
       attributes["\(prefix).chunk_id"] = .string(value.chunkID)
       attributes["\(prefix).chunk_index"] = .integer(UInt64(value.chunkIndex))
-      attributes["\(prefix).starts_at_unix_nano"] = .integer(
-        value.startsAtUnixNano
+      // The canonical behavior schema represents uint64 values as decimal
+      // strings so JSON consumers never lose nanosecond precision. Preserve
+      // that contract even though OTLP supports an integer AnyValue.
+      attributes["\(prefix).starts_at_unix_nano"] = .string(
+        String(value.startsAtUnixNano)
       )
-      attributes["\(prefix).ends_at_unix_nano"] = .integer(
-        value.endsAtUnixNano
+      attributes["\(prefix).ends_at_unix_nano"] = .string(
+        String(value.endsAtUnixNano)
       )
       attributes["\(prefix).sha256"] = .string(value.sha256)
       attributes["\(prefix).byte_count"] = .integer(value.byteCount)

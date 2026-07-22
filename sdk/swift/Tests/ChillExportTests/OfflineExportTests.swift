@@ -71,6 +71,48 @@ private func makeActionRecord(
   )
 }
 
+private func makeReplayRecord() throws -> BehaviorRecord {
+  BehaviorRecord(
+    schemaVersion: "1.0.0",
+    schemaURL: "https://schemas.chill.dev/behavior/v1/envelope.schema.json",
+    recordID: try RecordID("record-replay-wire"),
+    subjectID: try SubjectID("replay-wire"),
+    sessionID: try SessionID("session-test"),
+    kind: .replay,
+    operation: .instant,
+    name: try SemanticName("session.replay"),
+    clock: RecordClock(
+      occurredAtUnixNano: 1_784_687_848_652_707_200,
+      observedAtUnixNano: 1_784_687_848_652_707_300,
+      monotonicNano: 500,
+      bootID: try BootID("boot-test"),
+      sequenceNumber: 1
+    ),
+    annotations: .empty,
+    page: nil,
+    element: nil,
+    trace: nil,
+    captureClass: .replay,
+    consent: .granted,
+    policyVersion: "test-v1",
+    redactionState: .applied,
+    redactionCount: 0,
+    payload: .replay(
+      try ReplayPayload(
+        replayID: "replay-wire",
+        chunkID: "chunk-wire",
+        chunkIndex: 0,
+        startsAtUnixNano: 1_784_687_848_652_707_200,
+        endsAtUnixNano: 1_784_687_848_652_707_300,
+        sha256: String(repeating: "a", count: 64),
+        byteCount: 128,
+        storageRef: "replay://chunk/chunk-wire"
+      )
+    ),
+    durationNano: nil
+  )
+}
+
 private final class ScriptedTransport: OTLPExportTransport,
   @unchecked Sendable
 {
@@ -547,6 +589,25 @@ struct OfflineExporterTests {
     }
     #expect(attributeKeys.contains("chill.record.id"))
     #expect(attributeKeys.contains("chill.annotation.release.channel"))
+  }
+
+  @Test("Replay nanosecond timestamps preserve the canonical uint64 string contract")
+  func replayTimestampsAreDecimalStrings() throws {
+    let data = try OTLPJSONEncoder.encodeLogRecord(makeReplayRecord())
+    let object = try #require(
+      JSONSerialization.jsonObject(with: data) as? [String: Any]
+    )
+    let attributes = try #require(object["attributes"] as? [[String: Any]])
+    let decoded = decodeAttributes(attributes)
+
+    #expect(
+      decoded["chill.payload.starts_at_unix_nano"] as? String
+        == "1784687848652707200"
+    )
+    #expect(
+      decoded["chill.payload.ends_at_unix_nano"] as? String
+        == "1784687848652707300"
+    )
   }
 
   @Test("Batch encoding shares one resource and instrumentation scope")
