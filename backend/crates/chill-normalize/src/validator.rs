@@ -148,8 +148,13 @@ fn validate_invariants(document: &Value) -> Result<(), ProcessorError> {
     if observed < occurred {
         return Err(integrity("canonical observed time precedes occurrence"));
     }
-    if document.get("duration_nano").is_some() && operation != "end" {
-        return Err(integrity("duration is valid only for end records"));
+    if document.get("duration_nano").is_some()
+        && operation != "end"
+        && !(kind == "event" && operation == "instant")
+    {
+        return Err(integrity(
+            "duration is valid only for end records or instant events",
+        ));
     }
     Ok(())
 }

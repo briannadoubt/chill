@@ -173,7 +173,7 @@ impl Store {
                 ControlPlaneError::InvalidInput("session expiry is invalid".to_owned())
             })?;
         let mut transaction = self.begin_tenant(organization_id).await?;
-        let session_id = sqlx::query_scalar::<_, String>(
+        let (session_id, stored_expires_at) = sqlx::query_as::<_, (String, OffsetDateTime)>(
             r"
             INSERT INTO control.user_sessions (
                 organization_id, user_id, prefix, secret_digest, expires_at
@@ -186,7 +186,7 @@ impl Store {
             WHERE membership.organization_id = $1::uuid
               AND membership.user_id = $2::uuid AND membership.status = 'active'
               AND account.status = 'active' AND organization.status = 'active'
-            RETURNING id::text
+            RETURNING id::text, expires_at
         ",
         )
         .bind(organization_id)
@@ -211,7 +211,7 @@ impl Store {
         .bind(&user_id)
         .bind(&session_id)
         .bind(&identity.issuer)
-        .bind(expires_at.to_string())
+        .bind(stored_expires_at.to_string())
         .execute(&mut *transaction)
         .await?;
         transaction.commit().await?;
@@ -220,7 +220,7 @@ impl Store {
             organization_id: organization_id.to_owned(),
             user_id,
             credential: credential.raw,
-            expires_at,
+            expires_at: stored_expires_at,
         })
     }
 

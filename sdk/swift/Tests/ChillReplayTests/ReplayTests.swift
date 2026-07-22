@@ -391,6 +391,17 @@ struct ReplayTests {
     )
     #expect(second.descriptors().isEmpty)
     #expect(second.corruptChunks == 1)
+    try second.purge()
+    let corruptDirectory = directory.appendingPathComponent(
+      "corrupt",
+      isDirectory: true
+    )
+    #expect(
+      try FileManager.default.contentsOfDirectory(
+        at: corruptDirectory,
+        includingPropertiesForKeys: nil
+      ).isEmpty
+    )
   }
 
   @Test("Consent withdrawal purges sealed and unsealed replay state")
@@ -405,7 +416,7 @@ struct ReplayTests {
     await admission.flush()
     #expect(await engine.pendingChunks().count == 1)
     admission.submit(observation(monotonicNano: 200, nodes: [node(x: 1)]))
-    await admission.revokeConsent()
+    try await admission.revokeConsent()
     #expect(await engine.pendingChunks().isEmpty)
   }
 

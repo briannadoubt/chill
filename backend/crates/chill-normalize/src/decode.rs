@@ -229,8 +229,10 @@ impl Decoder {
                 Value::String(value.to_string()),
             );
         }
-        if operation != "end" && duration.is_some() {
-            return Err(invalid("duration_nano is valid only for end records"));
+        if !duration_is_valid(&kind, &operation, duration.is_some()) {
+            return Err(invalid(
+                "duration_nano is valid only for end records or instant events",
+            ));
         }
         let occurred = log.time_unix_nano;
         let observed = log.observed_time_unix_nano;
@@ -750,11 +752,26 @@ fn source_platform_is_supported(value: &str) -> bool {
     matches!(value, "apple" | "android" | "web" | "server")
 }
 
+fn duration_is_valid(kind: &str, operation: &str, present: bool) -> bool {
+    !present || operation == "end" || (kind == "event" && operation == "instant")
+}
+
 #[cfg(test)]
 mod tests {
     use serde_json::{Map, json};
 
-    use super::{DecodeError, assign, assign_literal, source_platform_is_supported};
+    use super::{
+        DecodeError, assign, assign_literal, duration_is_valid, source_platform_is_supported,
+    };
+
+    #[test]
+    fn duration_accepts_terminal_records_and_instant_diagnostic_events() {
+        assert!(duration_is_valid("activity", "end", true));
+        assert!(duration_is_valid("event", "instant", true));
+        assert!(!duration_is_valid("action", "instant", true));
+        assert!(!duration_is_valid("page", "update", true));
+        assert!(duration_is_valid("action", "instant", false));
+    }
 
     #[test]
     fn every_canonical_source_platform_is_supported() {

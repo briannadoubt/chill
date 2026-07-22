@@ -51,9 +51,20 @@ export function getConsoleTelemetry(policyVersion: string): ChillBrowser {
 export async function flushConsoleTelemetry(): Promise<void> {
   try {
     await activeClient?.flush();
-  } catch {
+  } catch (error) {
+    // Keep diagnostics content-free: never log payloads, endpoints, or credentials.
+    console.warn("Chill console telemetry flush failed", telemetryFailureCode(error));
     // The durable SDK buffer retries later; telemetry never disrupts the console.
   }
+}
+
+export function telemetryFailureCode(error: unknown): "export_http_error" | "client_encode_error" | "client_endpoint_error" | "client_transport_error" | "client_error" {
+  if (!(error instanceof Error)) return "client_error";
+  if (/^Chill export failed with HTTP \d{3}$/.test(error.message)) return "export_http_error";
+  if (error.message === "Chill client failed during encoding") return "client_encode_error";
+  if (error.message === "Chill client failed during endpoint resolution") return "client_endpoint_error";
+  if (error.message === "Chill client failed during transport") return "client_transport_error";
+  return "client_error";
 }
 
 export async function closeConsoleTelemetry(): Promise<void> {

@@ -134,6 +134,10 @@ impl Service {
     ///
     /// Returns a classified error for validation, busy/deadline, catalog,
     /// resource, cache, materialization, or engine failures.
+    #[allow(
+        clippy::too_many_lines,
+        reason = "query execution owns one resource lease across planning, cache pins, and blocking engine work"
+    )]
     pub async fn execute(
         &self,
         scope: &Scope,
@@ -155,7 +159,22 @@ impl Service {
         .map_err(|_| ServiceError::Busy)?;
         let queue_duration = queue_started.elapsed();
         let planning_started = Instant::now();
-        let dataset = self.catalog.resolve(scope, plan).await?;
+        let dataset = self
+            .catalog
+            .resolve(
+                scope,
+                plan,
+                self.configuration.maximum_files,
+                self.configuration.maximum_scan_bytes,
+            )
+            .await
+            .map_err(|error| {
+                if matches!(error, CatalogError::ResourceLimit) {
+                    ServiceError::ResourceLimit
+                } else {
+                    ServiceError::Catalog(error)
+                }
+            })?;
         let planning_duration = planning_started.elapsed();
         if dataset.files.len() > self.configuration.maximum_files
             || dataset.byte_count > self.configuration.maximum_scan_bytes
@@ -193,6 +212,7 @@ impl Service {
         let maximum_bytes = self.configuration.maximum_result_bytes;
         let execution_started = Instant::now();
         let mut task = tokio::task::spawn_blocking(move || {
+            let _permit = permit;
             engine.execute(&compiled, maximum_rows, maximum_bytes)
         });
         let execution = tokio::time::timeout(self.configuration.query_timeout, &mut task).await;
@@ -220,7 +240,6 @@ impl Service {
         };
         let execution_duration = execution_started.elapsed();
         acquired.release().await;
-        drop(permit);
         result.stats.manifest_generation = dataset.generation;
         result.stats.file_count = dataset.files.len();
         result.stats.scan_bytes = dataset.byte_count;

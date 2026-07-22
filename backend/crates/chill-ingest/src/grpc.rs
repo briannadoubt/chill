@@ -1,6 +1,13 @@
 use std::time::Duration;
 
-use axum::Router;
+use axum::{
+    Router,
+    body::Body,
+    extract::Request as AxumRequest,
+    http::{HeaderValue, StatusCode},
+    middleware::{self, Next},
+    response::{IntoResponse, Response as AxumResponse},
+};
 use bytes::Bytes;
 use opentelemetry_proto::tonic::collector::{
     logs::v1::{
@@ -19,7 +26,10 @@ use opentelemetry_proto::tonic::collector::{
 use prost::Message;
 use tonic::{Code, Request, Response, Status, metadata::MetadataMap, service::Routes};
 
-use crate::{AdmissionError, Candidate, ErrorCode, PayloadFormat, Receipt, Service, SignalKind};
+use crate::{
+    AdmissionError, Candidate, ErrorCode, PayloadFormat, Receipt, Service, SignalKind,
+    service::AdmissionPermit,
+};
 
 #[derive(Clone)]
 struct Adapter {
@@ -28,11 +38,26 @@ struct Adapter {
 
 /// Builds OTLP/gRPC services suitable for merging into the shared h2c Axum listener.
 pub fn grpc_router(service: Service) -> Router {
-    let adapter = Adapter { service };
-    Routes::new(LogsServiceServer::new(adapter.clone()))
-        .add_service(TraceServiceServer::new(adapter.clone()))
-        .add_service(MetricsServiceServer::new(adapter))
-        .into_axum_router()
+    let adapter = Adapter {
+        service: service.clone(),
+    };
+    let limits = service.limits();
+    Routes::new(
+        LogsServiceServer::new(adapter.clone())
+            .max_decoding_message_size(limits.maximum_payload_bytes),
+    )
+    .add_service(
+        TraceServiceServer::new(adapter.clone())
+            .max_decoding_message_size(limits.maximum_payload_bytes),
+    )
+    .add_service(
+        MetricsServiceServer::new(adapter).max_decoding_message_size(limits.maximum_payload_bytes),
+    )
+    .into_axum_router()
+    .layer(middleware::from_fn_with_state(
+        service,
+        grpc_admission_middleware,
+    ))
 }
 
 #[tonic::async_trait]
@@ -74,8 +99,9 @@ impl MetricsService for Adapter {
 impl Adapter {
     async fn accept<T>(&self, request: Request<T>, kind: SignalKind) -> Result<Receipt, Status>
     where
-        T: Message,
+        T: BoundedExportRequest,
     {
+        let mut request = request;
         let credential = grpc_credential(request.metadata())?;
         let idempotency = metadata_values(request.metadata(), "idempotency-key")?;
         if idempotency.len() > 1 {
@@ -83,18 +109,133 @@ impl Adapter {
                 "multiple idempotency keys are not allowed",
             ));
         }
+        let permit = request
+            .extensions_mut()
+            .remove::<AdmissionPermit>()
+            .map_or_else(|| self.service.try_admit().map_err(grpc_error), Ok)?;
+        let message = request.into_inner();
+        enforce_resource_container_limit(&message, self.service.limits().maximum_records)
+            .map_err(grpc_error)?;
+        let payload = bounded_encode(&message, self.service.limits().maximum_payload_bytes)
+            .map_err(grpc_error)?;
         self.service
-            .accept(Candidate {
-                kind,
-                format: PayloadFormat::Protobuf,
-                payload: request.into_inner().encode_to_vec(),
-                credential,
-                idempotency_key: idempotency.into_iter().next().unwrap_or_default(),
-                replay: None,
-            })
+            .accept_admitted(
+                Candidate {
+                    kind,
+                    format: PayloadFormat::Protobuf,
+                    payload,
+                    credential,
+                    idempotency_key: idempotency.into_iter().next().unwrap_or_default(),
+                    replay: None,
+                },
+                permit,
+            )
             .await
             .map_err(grpc_error)
     }
+}
+
+trait BoundedExportRequest: Message {
+    fn resource_container_count(&self) -> usize;
+
+    fn resource_container_name() -> &'static str;
+}
+
+impl BoundedExportRequest for ExportLogsServiceRequest {
+    fn resource_container_count(&self) -> usize {
+        self.resource_logs.len()
+    }
+
+    fn resource_container_name() -> &'static str {
+        "resource_logs"
+    }
+}
+
+impl BoundedExportRequest for ExportTraceServiceRequest {
+    fn resource_container_count(&self) -> usize {
+        self.resource_spans.len()
+    }
+
+    fn resource_container_name() -> &'static str {
+        "resource_spans"
+    }
+}
+
+impl BoundedExportRequest for ExportMetricsServiceRequest {
+    fn resource_container_count(&self) -> usize {
+        self.resource_metrics.len()
+    }
+
+    fn resource_container_name() -> &'static str {
+        "resource_metrics"
+    }
+}
+
+async fn grpc_admission_middleware(
+    service: axum::extract::State<Service>,
+    mut request: AxumRequest<Body>,
+    next: Next,
+) -> AxumResponse {
+    let permit = match service.try_admit() {
+        Ok(value) => value,
+        Err(error) => return grpc_admission_error(&error),
+    };
+    request.extensions_mut().insert(permit);
+    next.run(request).await
+}
+
+fn enforce_resource_container_limit<T: BoundedExportRequest>(
+    request: &T,
+    maximum_records: usize,
+) -> Result<(), AdmissionError> {
+    if request.resource_container_count() > maximum_records {
+        return Err(AdmissionError::new(
+            ErrorCode::TooLarge,
+            format!(
+                "gRPC {} count exceeds the configured record limit",
+                T::resource_container_name()
+            ),
+        ));
+    }
+    Ok(())
+}
+
+fn bounded_encode<T: Message>(
+    message: &T,
+    maximum_payload_bytes: usize,
+) -> Result<Vec<u8>, AdmissionError> {
+    let encoded_len = message.encoded_len();
+    if encoded_len > maximum_payload_bytes {
+        return Err(AdmissionError::new(
+            ErrorCode::TooLarge,
+            "request payload exceeds the configured limit",
+        ));
+    }
+    let mut payload = Vec::with_capacity(encoded_len);
+    message.encode(&mut payload).map_err(|error| {
+        AdmissionError::with_source(ErrorCode::Invalid, "request payload is invalid", error)
+    })?;
+    Ok(payload)
+}
+
+fn grpc_admission_error(error: &AdmissionError) -> AxumResponse {
+    let mut response = (StatusCode::OK, Body::empty()).into_response();
+    response
+        .headers_mut()
+        .insert("content-type", HeaderValue::from_static("application/grpc"));
+    response
+        .headers_mut()
+        .insert("grpc-status", HeaderValue::from_static("8"));
+    response.headers_mut().insert(
+        "grpc-message",
+        HeaderValue::from_static("ingestion%20concurrency%20is%20saturated"),
+    );
+    if let Some(retry_after) = error.retry_after
+        && let Ok(value) = HeaderValue::try_from(retry_after.as_secs().max(1).to_string())
+    {
+        response.headers_mut().insert("retry-after", value);
+    }
+    response
 }
 
 fn grpc_credential(metadata: &MetadataMap) -> Result<String, Status> {
@@ -191,4 +332,40 @@ struct GoogleStatus {
 struct RetryInfo {
     #[prost(message, optional, tag = "1")]
     retry_delay: Option<prost_types::Duration>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use anyhow::bail;
+    use opentelemetry_proto::tonic::logs::v1::ResourceLogs;
+
+    #[test]
+    fn rejects_too_many_grpc_resource_containers_before_reencoding() -> anyhow::Result<()> {
+        let request = ExportLogsServiceRequest {
+            resource_logs: vec![ResourceLogs::default(), ResourceLogs::default()],
+        };
+
+        let Err(error) = enforce_resource_container_limit(&request, 1) else {
+            bail!("excessive resource_logs should be rejected");
+        };
+
+        assert_eq!(error.code, ErrorCode::TooLarge);
+        assert!(error.message.contains("resource_logs"));
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_reencoded_grpc_payloads_over_configured_limit() -> anyhow::Result<()> {
+        let request = ExportLogsServiceRequest {
+            resource_logs: vec![ResourceLogs::default()],
+        };
+
+        let Err(error) = bounded_encode(&request, 1) else {
+            bail!("oversized encoded payload should be rejected");
+        };
+
+        assert_eq!(error.code, ErrorCode::TooLarge);
+        Ok(())
+    }
 }

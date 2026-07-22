@@ -19,9 +19,9 @@ test("consent gates capture and flushes OTLP without payload text", async () => 
   assert.match(body, /message\.send/); assert.doesNotMatch(body, /entered_text/);
 });
 
-test("OTLP projection includes canonical web source, privacy, page, and annotation attributes", async () => {
+test("OTLP projection includes canonical web source, privacy, page, and allowlisted annotation attributes", async () => {
   let body = "";
-  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "unknown", installationId: "12345678-1234-4234-8234-123456789abc", fetch: async (_input, init) => { body = String(init?.body); return new Response(null, { status: 200 }); } });
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "unknown", installationId: "12345678-1234-4234-8234-123456789abc", allowedAnnotationKeys: ["app.area"], fetch: async (_input, init) => { body = String(init?.body); return new Response(null, { status: 200 }); } });
   client.setContext(AnnotationContext.empty().with(annotationKey("app.area"), "console"));
   client.setConsent("granted"); client.startPage("overview"); client.event("console.open", { event_class: "lifecycle", emission: "observed" });
   assert.equal(await client.flush(), 3);
@@ -38,6 +38,85 @@ test("OTLP projection includes canonical web source, privacy, page, and annotati
   assert.ok(attributes.has("chill.privacy.annotation_classification.app.area"));
   const eventAttributes = new Map(records.at(-1)!.attributes.map(attribute => [attribute.key, attribute.value] as const));
   assert.deepEqual(eventAttributes.get("chill.record.id"), eventAttributes.get("chill.subject.id"));
+});
+
+test("browser privacy policy is default-deny before durable buffering", async () => {
+  const dom = new JSDOM("", { url: "https://app.example/path?token=secret#frag" });
+  Object.defineProperty(globalThis, "location", { configurable: true, value: dom.window.location });
+  const storage = dom.window.localStorage;
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "granted", storage, fetch: async () => new Response(null, { status: 200 }) });
+  client.setContext(AnnotationContext.empty().with(annotationKey("app.area"), "checkout"));
+  client.event("checkout.submit", { email: "cat@example.test", allowed: "nope" });
+  const records = JSON.parse(storage.getItem("chill.buffer.v1") ?? "[]") as Array<{ source: { page_url: string }; annotations: Record<string, unknown>; payload: Record<string, unknown> }>;
+  const record = records.at(-1)!;
+  assert.equal(record.source.page_url, "https://app.example/path");
+  assert.deepEqual(record.annotations, {});
+  assert.deepEqual(record.payload, {});
+});
+
+test("consent denial aborts an in-flight browser upload and clears the queue", async () => {
+  const dom = new JSDOM("", { url: "https://app.example/path" });
+  const storage = dom.window.localStorage;
+  let signal: AbortSignal | undefined;
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "granted", storage, fetch: async (_input, init) => {
+    signal = init?.signal ?? undefined;
+    await new Promise((_resolve, reject) => signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")), { once: true }));
+    return new Response(null, { status: 200 });
+  } });
+  client.event("checkout.submit");
+  const flushing = client.flush();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  client.setConsent("denied");
+  assert.equal(await flushing, 0);
+  assert.equal(signal?.aborted, true);
+  assert.equal(storage.getItem("chill.buffer.v1"), "[]");
+});
+
+test("flushes stay below the browser keepalive body limit and drain in bounded batches", async () => {
+  const dom = new JSDOM("", { url: "https://app.example/path" });
+  const storage = dom.window.localStorage;
+  const sizes: number[] = [];
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "granted", storage, allowedPayloadKeys: ["bulk"], fetch: async (_input, init) => {
+    sizes.push(new TextEncoder().encode(String(init?.body)).byteLength);
+    assert.equal(init?.keepalive, true);
+    return new Response(null, { status: 200 });
+  } });
+  for (let index = 0; index < 200; index += 1) client.event("load.sample", { bulk: "x".repeat(256) });
+  let exported = 0;
+  for (;;) {
+    const count = await client.flush();
+    if (count === 0) break;
+    exported += count;
+  }
+  assert.equal(exported, 201);
+  assert.ok(sizes.length > 1);
+  assert.ok(sizes.every(size => size <= 60 * 1024));
+});
+
+test("invalid restored records cannot permanently poison the durable queue", async () => {
+  const dom = new JSDOM("", { url: "https://app.example/path" });
+  const storage = dom.window.localStorage;
+  storage.setItem("chill.buffer.v1", JSON.stringify([{ clock: null, credential: "must-not-survive" }]));
+  let body = "";
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "privacy-v1", consent: "granted", storage, fetch: async (_input, init) => {
+    body = String(init?.body);
+    return new Response(null, { status: 200 });
+  } });
+  client.event("queue.recovered");
+  assert.equal(await client.flush(), 2);
+  assert.doesNotMatch(body, /must-not-survive/);
+  assert.equal(storage.getItem("chill.buffer.v1"), "[]");
+});
+
+test("browser fetch is invoked with the global receiver", async () => {
+  let receiver: unknown;
+  const fetcher = async function (this: unknown): Promise<Response> {
+    receiver = this;
+    return new Response(null, { status: 200 });
+  } as typeof fetch;
+  const client = new ChillBrowser({ endpoint: "https://ingest.example", sdkKey: "secret", policyVersion: "v1", consent: "granted", fetch: fetcher });
+  assert.equal(await client.flush(), 1);
+  assert.equal(receiver, globalThis);
 });
 
 test("activity wrapper preserves return and records failure", async () => {

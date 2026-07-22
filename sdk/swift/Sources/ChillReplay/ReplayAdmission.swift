@@ -86,9 +86,9 @@ package final class ReplayAdmission: @unchecked Sendable {
     await engine.resetUnsealed()
   }
 
-  package func revokeConsent() async {
+  package func revokeConsent() async throws {
     await discardUnsealed()
-    try? await engine.purge()
+    try await engine.purge()
   }
 
   private func scheduleDrain() {

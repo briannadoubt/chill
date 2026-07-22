@@ -76,13 +76,19 @@ services:
         mc alias set local http://minio:9000 "$$(cat /run/secrets/minio_user)" "$$(cat /run/secrets/minio_password)" >/dev/null;
         mc mb --ignore-existing local/chill;
         mc version enable local/chill;
-        mc anonymous set none local/chill
+        mc anonymous set none local/chill;
+        printf '%s\n' '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["s3:ListBucket","s3:ListBucketVersions"],"Resource":["arn:aws:s3:::chill"]},{"Effect":"Allow","Action":["s3:GetObject","s3:PutObject","s3:DeleteObject","s3:DeleteObjectVersion"],"Resource":["arn:aws:s3:::chill/*"]}]}' >/tmp/chill-runtime-policy.json;
+        mc admin user add local "$$(cat /run/secrets/s3_runtime_user)" "$$(cat /run/secrets/s3_runtime_password)" || mc admin user info local "$$(cat /run/secrets/s3_runtime_user)" >/dev/null;
+        mc admin policy create local chill-runtime /tmp/chill-runtime-policy.json || mc admin policy info local chill-runtime >/dev/null;
+        mc admin policy attach local chill-runtime --user "$$(cat /run/secrets/s3_runtime_user)"
     depends_on:
       minio:
         condition: service_healthy
     secrets:
       - minio_user
       - minio_password
+      - s3_runtime_user
+      - s3_runtime_password
     networks:
       - data
     restart: "no"
@@ -349,6 +355,10 @@ secrets:
     file: ./.secrets/minio_password
   s3_credentials:
     file: ./.secrets/s3_credentials
+  s3_runtime_user:
+    file: ./.secrets/s3_runtime_user
+  s3_runtime_password:
+    file: ./.secrets/s3_runtime_password
 
 volumes:
   postgres-data:

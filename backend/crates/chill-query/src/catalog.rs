@@ -54,6 +54,9 @@ pub enum CatalogError {
     /// The exact environment has no active privacy policy.
     #[error("query scope is unavailable")]
     ScopeNotFound,
+    /// File count or scan byte policy would be exceeded.
+    #[error("query catalog exceeds a resource limit")]
+    ResourceLimit,
     /// Committed metadata violated the lake contract.
     #[error("committed lake metadata is invalid")]
     InvalidMetadata,
@@ -78,9 +81,33 @@ impl Catalog {
     ///
     /// Returns an error for invalid scope, absent policy, tenant/database
     /// failures, or malformed committed metadata.
-    pub async fn resolve(&self, scope: &Scope, plan: &Plan) -> Result<Dataset, CatalogError> {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "catalog resolution keeps quota, policy, file caps, and generation hashing in one snapshot"
+    )]
+    pub async fn resolve(
+        &self,
+        scope: &Scope,
+        plan: &Plan,
+        maximum_files: usize,
+        maximum_scan_bytes: i64,
+    ) -> Result<Dataset, CatalogError> {
         scope.validate()?;
         let mut transaction = self.control.begin_tenant(&scope.organization_id).await?;
+        let quota_scan_bytes: i64 = sqlx::query_scalar(
+            r"SELECT query_scan_bytes FROM control.quotas WHERE organization_id=$1::uuid
+              AND project_id=$2::uuid AND environment_id=$3::uuid",
+        )
+        .bind(&scope.organization_id)
+        .bind(&scope.project_id)
+        .bind(&scope.environment_id)
+        .fetch_optional(&mut *transaction)
+        .await?
+        .ok_or(CatalogError::ScopeNotFound)?;
+        let maximum_scan_bytes = maximum_scan_bytes.min(quota_scan_bytes);
+        let file_limit = i64::try_from(maximum_files)
+            .map_err(|_| CatalogError::InvalidMetadata)?
+            .saturating_add(1);
         let lifecycle_generation = sqlx::query_scalar::<_, i64>(
             r"SELECT coalesce((SELECT generation FROM lifecycle.environment_generations
               WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid),0)",
@@ -117,7 +144,7 @@ impl Catalog {
               AND environment_id=$3::uuid AND status='committed' AND envelope_kind=ANY($4)
               AND max_effective_occurred_at_unix_nano >= $5::numeric
               AND min_effective_occurred_at_unix_nano < $6::numeric
-              ORDER BY partition_day,partition_hour,envelope_kind,batch_id",
+              ORDER BY partition_day,partition_hour,envelope_kind,batch_id LIMIT $7",
         )
         .bind(&scope.organization_id)
         .bind(&scope.project_id)
@@ -125,9 +152,13 @@ impl Catalog {
         .bind(kinds)
         .bind(plan.range.start_unix_nano.to_string())
         .bind(plan.range.end_unix_nano.to_string())
+        .bind(file_limit)
         .fetch_all(&mut *transaction)
         .await?;
         transaction.commit().await?;
+        if rows.len() > maximum_files {
+            return Err(CatalogError::ResourceLimit);
+        }
         let mut files = Vec::with_capacity(rows.len());
         let mut byte_count = 0_i64;
         let mut row_count = 0_i64;
@@ -142,6 +173,9 @@ impl Catalog {
             byte_count = byte_count
                 .checked_add(row.byte_count)
                 .ok_or(CatalogError::InvalidMetadata)?;
+            if byte_count > maximum_scan_bytes {
+                return Err(CatalogError::ResourceLimit);
+            }
             row_count = row_count
                 .checked_add(i64::from(row.row_count))
                 .ok_or(CatalogError::InvalidMetadata)?;

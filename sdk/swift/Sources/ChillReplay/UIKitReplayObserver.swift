@@ -106,7 +106,7 @@
       let consented = runtime.isCaptureEnabled(for: .replay)
       if !consented {
         if !consentStateKnown || wasConsented {
-          Task { [admission] in await admission.revokeConsent() }
+          Task { [admission] in try? await admission.revokeConsent() }
         }
         consentStateKnown = true
         wasConsented = false

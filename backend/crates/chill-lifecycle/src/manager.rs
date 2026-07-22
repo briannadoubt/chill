@@ -342,7 +342,7 @@ impl Manager {
 
     async fn process(&self, request: &Request) -> Result<Completion, LifecycleError> {
         self.prepare_lake(request).await?;
-        self.rewrite_affected_batches(request).await?;
+        while self.rewrite_affected_batches(request).await? != 0 {}
         self.purge_postgres(request).await?;
         self.delete_objects(request).await?;
         self.complete(request).await
@@ -364,7 +364,9 @@ impl Manager {
         let affected = sqlx::query(
             r"UPDATE lifecycle.deletion_requests SET status=$1,
               available_at=clock_timestamp()+make_interval(secs=>$2),lease_owner=NULL,
-              lease_expires_at=NULL,last_error_code='lifecycle.process',last_error_message=$3
+              lease_expires_at=NULL,
+              target_value=CASE WHEN $1='failed' AND kind='data_subject' THEN NULL ELSE target_value END,
+              last_error_code='lifecycle.process',last_error_message=$3
               WHERE id=$4::uuid AND status='leased' AND lease_owner=$5",
         )
         .bind(status)
@@ -397,30 +399,31 @@ impl Manager {
                 "{active} lake publication leases remain active"
             )));
         }
-        let batches: Vec<String> = if request.kind == Kind::Tenant {
-            sqlx::query_scalar("SELECT batch_id FROM lake.export_batches WHERE organization_id=$1::uuid AND (status='pending' OR (status='leased' AND lease_expires_at<=clock_timestamp())) FOR UPDATE")
-                .bind(&request.organization_id).fetch_all(&mut *transaction).await?
-        } else {
-            sqlx::query_scalar("SELECT batch_id FROM lake.export_batches WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid AND (status='pending' OR (status='leased' AND lease_expires_at<=clock_timestamp())) FOR UPDATE")
-                .bind(&request.organization_id).bind(&request.project_id).bind(&request.environment_id)
-                .fetch_all(&mut *transaction).await?
-        };
+        transaction.commit().await?;
+
+        let batches = self.cancellable_lake_batches(request).await?;
+        for batch in &batches {
+            self.delete_possible_uncommitted_lake_objects(batch).await?;
+        }
+
+        let mut transaction = self.control.begin_tenant(&request.organization_id).await?;
         for batch in batches {
             sqlx::query("DELETE FROM lake.source_claims WHERE batch_id=$1")
-                .bind(&batch)
+                .bind(&batch.id)
                 .execute(&mut *transaction)
                 .await?;
             sqlx::query("DELETE FROM lake.batch_records WHERE batch_id=$1")
-                .bind(&batch)
+                .bind(&batch.id)
                 .execute(&mut *transaction)
                 .await?;
             sqlx::query(
                 r"UPDATE lake.export_batches SET status='dead_letter',lease_owner=NULL,
                   lease_expires_at=NULL,last_error_code='lifecycle.cancelled',
                   last_error_message='cancelled before publication by an active lifecycle deletion'
-                  WHERE batch_id=$1",
+                  WHERE batch_id=$1 AND (status='pending' OR status='dead_letter'
+                    OR (status='leased' AND lease_expires_at<=clock_timestamp()))",
             )
-            .bind(batch)
+            .bind(&batch.id)
             .execute(&mut *transaction)
             .await?;
         }
@@ -428,8 +431,61 @@ impl Manager {
         Ok(())
     }
 
-    async fn rewrite_affected_batches(&self, request: &Request) -> Result<(), LifecycleError> {
+    async fn cancellable_lake_batches(
+        &self,
+        request: &Request,
+    ) -> Result<Vec<Batch>, LifecycleError> {
+        let query = if request.kind == Kind::Tenant {
+            r"SELECT batch_id,organization_id::text,project_id::text,environment_id::text,
+              batch_kind,partition_day,partition_hour::integer AS partition_hour,envelope_kind,row_count,
+              min_server_received_at_unix_nano::text AS min_server,
+              max_server_received_at_unix_nano::text AS max_server,
+              min_effective_occurred_at_unix_nano::text AS min_occurred,
+              max_effective_occurred_at_unix_nano::text AS max_occurred,attempt_count
+              FROM lake.export_batches WHERE organization_id=$1::uuid
+                AND (status='pending' OR status='dead_letter'
+                  OR (status='leased' AND lease_expires_at<=clock_timestamp()))
+              ORDER BY created_at,batch_id"
+        } else {
+            r"SELECT batch_id,organization_id::text,project_id::text,environment_id::text,
+              batch_kind,partition_day,partition_hour::integer AS partition_hour,envelope_kind,row_count,
+              min_server_received_at_unix_nano::text AS min_server,
+              max_server_received_at_unix_nano::text AS max_server,
+              min_effective_occurred_at_unix_nano::text AS min_occurred,
+              max_effective_occurred_at_unix_nano::text AS max_occurred,attempt_count
+              FROM lake.export_batches WHERE organization_id=$1::uuid
+                AND project_id=$2::uuid AND environment_id=$3::uuid
+                AND (status='pending' OR status='dead_letter'
+                  OR (status='leased' AND lease_expires_at<=clock_timestamp()))
+              ORDER BY created_at,batch_id"
+        };
+        let mut transaction = self.control.begin_tenant(&request.organization_id).await?;
+        let mut statement =
+            sqlx::query_as::<_, CancellableLakeRow>(query).bind(&request.organization_id);
+        if request.kind != Kind::Tenant {
+            statement = statement
+                .bind(&request.project_id)
+                .bind(&request.environment_id);
+        }
+        let rows = statement.fetch_all(&mut *transaction).await?;
+        transaction.commit().await?;
+        rows.into_iter()
+            .map(CancellableLakeRow::into_batch)
+            .collect()
+    }
+
+    async fn delete_possible_uncommitted_lake_objects(
+        &self,
+        batch: &Batch,
+    ) -> Result<(), LifecycleError> {
+        self.objects.delete(&batch.object_key()?).await?;
+        self.objects.delete(&batch.manifest_key()?).await?;
+        Ok(())
+    }
+
+    async fn rewrite_affected_batches(&self, request: &Request) -> Result<usize, LifecycleError> {
         let sources = self.source_batches(request).await?;
+        let source_count = sources.len();
         for source in sources {
             let body = self.objects.get(&source.object_key).await?;
             if i64::try_from(body.len()).ok() != Some(source.byte_count)
@@ -479,9 +535,13 @@ impl Manager {
             self.commit_rewrite(request, &source, replacement.as_ref(), &survivors, removed)
                 .await?;
         }
-        Ok(())
+        Ok(source_count)
     }
 
+    #[allow(
+        clippy::too_many_lines,
+        reason = "bounded dynamic SQL keeps each lifecycle scope in one auditable selector"
+    )]
     async fn source_batches(&self, request: &Request) -> Result<Vec<SourceBatch>, LifecycleError> {
         let mut query = String::from(
             r"SELECT batch_id,organization_id::text,project_id::text,environment_id::text,
@@ -490,24 +550,69 @@ impl Manager {
               max_server_received_at_unix_nano::text AS max_server,
               min_effective_occurred_at_unix_nano::text AS min_occurred,
               max_effective_occurred_at_unix_nano::text AS max_occurred,status,object_key,
-              manifest_key,object_sha256,manifest_sha256,byte_count FROM lake.export_batches
-              WHERE organization_id=$1::uuid AND status IN ('committed','superseded')",
+              manifest_key,object_sha256,manifest_sha256,byte_count FROM lake.export_batches AS batch
+              WHERE batch.organization_id=$1::uuid AND batch.status IN ('committed','superseded')",
         );
         let mut next = 2;
         if request.kind != Kind::Tenant {
-            query.push_str(" AND project_id=$2::uuid AND environment_id=$3::uuid");
+            query.push_str(" AND batch.project_id=$2::uuid AND batch.environment_id=$3::uuid");
             next = 4;
         }
         if request.kind == Kind::ReplayExpiry {
-            query.push_str(" AND envelope_kind='replay'");
+            query.push_str(" AND batch.envelope_kind='replay'");
         }
         if matches!(request.kind, Kind::Retention | Kind::ReplayExpiry) {
             write!(
                 query,
-                " AND (status='superseded' OR min_effective_occurred_at_unix_nano < ${next}::numeric)"
+                " AND (batch.status='superseded' OR batch.min_effective_occurred_at_unix_nano < ${next}::numeric)"
             )
             .map_err(|_| LifecycleError::State("build source query failed".to_owned()))?;
             next += 1;
+        }
+        match request.kind {
+            Kind::Tenant | Kind::Environment => {}
+            Kind::Retention | Kind::ReplayExpiry => {
+                write!(
+                    query,
+                    r" AND EXISTS (
+                      SELECT 1 FROM lake.batch_records AS member
+                      JOIN ingest.canonical_envelopes AS envelope
+                        ON envelope.id=member.canonical_envelope_id
+                       AND envelope.organization_id=member.organization_id
+                       AND envelope.project_id=member.project_id
+                       AND envelope.environment_id=member.environment_id
+                      WHERE member.batch_id=batch.batch_id
+                        AND member.organization_id=batch.organization_id
+                        AND member.project_id=batch.project_id
+                        AND member.environment_id=batch.environment_id
+                        AND envelope.effective_occurred_at_unix_nano < ${next}::numeric)"
+                )
+                .map_err(|_| LifecycleError::State("build source query failed".to_owned()))?;
+                next += 1;
+            }
+            Kind::DataSubject => {
+                let target =
+                    target_column(request.target_kind.ok_or_else(|| {
+                        LifecycleError::State("subject target missing".to_owned())
+                    })?);
+                write!(
+                    query,
+                    r" AND EXISTS (
+                      SELECT 1 FROM lake.batch_records AS member
+                      JOIN ingest.canonical_envelopes AS envelope
+                        ON envelope.id=member.canonical_envelope_id
+                       AND envelope.organization_id=member.organization_id
+                       AND envelope.project_id=member.project_id
+                       AND envelope.environment_id=member.environment_id
+                      WHERE member.batch_id=batch.batch_id
+                        AND member.organization_id=batch.organization_id
+                        AND member.project_id=batch.project_id
+                        AND member.environment_id=batch.environment_id
+                        AND envelope.{target}=${next})"
+                )
+                .map_err(|_| LifecycleError::State("build source query failed".to_owned()))?;
+                next += 1;
+            }
         }
         write!(query, " ORDER BY published_at,batch_id LIMIT ${next}")
             .map_err(|_| LifecycleError::State("build source query failed".to_owned()))?;
@@ -528,15 +633,26 @@ impl Manager {
                     .to_string(),
             );
         }
-        let limit = i64::try_from(self.configuration.maximum_files)
-            .unwrap_or(i64::MAX)
-            .saturating_add(1);
+        match request.kind {
+            Kind::Tenant | Kind::Environment => {}
+            Kind::Retention | Kind::ReplayExpiry => {
+                statement = statement.bind(
+                    request
+                        .cutoff_unix_nano
+                        .ok_or_else(|| {
+                            LifecycleError::State("retention cutoff missing".to_owned())
+                        })?
+                        .to_string(),
+                );
+            }
+            Kind::DataSubject => {
+                statement = statement.bind(&request.target_value);
+            }
+        }
+        let limit = i64::try_from(self.configuration.maximum_files).unwrap_or(i64::MAX);
         let mut transaction = self.control.begin_tenant(&request.organization_id).await?;
         let rows = statement.bind(limit).fetch_all(&mut *transaction).await?;
         transaction.commit().await?;
-        if rows.len() > self.configuration.maximum_files {
-            return Err(LifecycleError::FileLimit);
-        }
         rows.into_iter().map(SourceRow::into_source).collect()
     }
 
@@ -733,8 +849,14 @@ impl Manager {
     }
 
     async fn purge_postgres(&self, request: &Request) -> Result<(), LifecycleError> {
+        while self.purge_postgres_chunk(request).await? != 0 {}
+        Ok(())
+    }
+
+    async fn purge_postgres_chunk(&self, request: &Request) -> Result<usize, LifecycleError> {
         let mut transaction = self.control.begin_tenant(&request.organization_id).await?;
         let ids = matching_canonical_ids(&mut transaction, request).await?;
+        let purged = ids.len();
         if !ids.is_empty() {
             let committed: i64 = sqlx::query_scalar(
                 r"SELECT count(*) FROM lake.batch_records AS member
@@ -809,7 +931,7 @@ impl Manager {
         .execute(&mut *transaction)
         .await?;
         transaction.commit().await?;
-        Ok(())
+        Ok(purged)
     }
 
     async fn delete_objects(&self, request: &Request) -> Result<(), LifecycleError> {
@@ -972,6 +1094,24 @@ struct DeletionObject {
 }
 
 #[derive(sqlx::FromRow)]
+struct CancellableLakeRow {
+    batch_id: String,
+    organization_id: String,
+    project_id: String,
+    environment_id: String,
+    batch_kind: String,
+    partition_day: Date,
+    partition_hour: i32,
+    envelope_kind: String,
+    row_count: i32,
+    min_server: String,
+    max_server: String,
+    min_occurred: String,
+    max_occurred: String,
+    attempt_count: i32,
+}
+
+#[derive(sqlx::FromRow)]
 struct SourceRow {
     batch_id: String,
     organization_id: String,
@@ -992,6 +1132,30 @@ struct SourceRow {
     object_sha256: Vec<u8>,
     manifest_sha256: Vec<u8>,
     byte_count: i64,
+}
+
+impl CancellableLakeRow {
+    fn into_batch(self) -> Result<Batch, LifecycleError> {
+        Ok(Batch {
+            id: self.batch_id,
+            organization_id: self.organization_id,
+            project_id: self.project_id,
+            environment_id: self.environment_id,
+            kind: self.batch_kind,
+            partition_day: self.partition_day,
+            partition_hour: u8::try_from(self.partition_hour)
+                .map_err(|_| LifecycleError::State("partition hour is invalid".to_owned()))?,
+            envelope_kind: self.envelope_kind,
+            row_count: usize::try_from(self.row_count)
+                .map_err(|_| LifecycleError::State("row count is invalid".to_owned()))?,
+            min_server_received_at_unix_nano: parse_u64(&self.min_server)?,
+            max_server_received_at_unix_nano: parse_u64(&self.max_server)?,
+            min_effective_occurred_at_unix_nano: parse_u64(&self.min_occurred)?,
+            max_effective_occurred_at_unix_nano: parse_u64(&self.max_occurred)?,
+            attempt_count: self.attempt_count,
+            supersedes: Vec::new(),
+        })
+    }
 }
 
 struct SourceBatch {
@@ -1163,6 +1327,14 @@ fn parse_target(value: &str) -> Result<TargetKind, LifecycleError> {
     }
 }
 
+const fn target_column(target: TargetKind) -> &'static str {
+    match target {
+        TargetKind::InstallationId => "installation_id",
+        TargetKind::SessionId => "session_id",
+        TargetKind::ReplayId => "replay_id",
+    }
+}
+
 fn same_request(left: &Request, right: &Request) -> bool {
     left.organization_id == right.organization_id
         && left.project_id == right.project_id
@@ -1212,37 +1384,37 @@ async fn matching_canonical_ids(
 ) -> Result<Vec<i64>, LifecycleError> {
     let ids = match request.kind {
         Kind::Tenant => sqlx::query_scalar(
-            "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid",
+            "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid ORDER BY id LIMIT 10000",
         )
         .bind(&request.organization_id)
         .fetch_all(&mut **transaction)
         .await?,
         Kind::Environment => sqlx::query_scalar(
-            "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid",
+            "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid ORDER BY id LIMIT 10000",
         )
         .bind(&request.organization_id).bind(&request.project_id).bind(&request.environment_id)
         .fetch_all(&mut **transaction).await?,
         Kind::Retention => sqlx::query_scalar(
-            "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid AND effective_occurred_at_unix_nano<$4::numeric",
+            "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid AND effective_occurred_at_unix_nano<$4::numeric ORDER BY id LIMIT 10000",
         )
         .bind(&request.organization_id).bind(&request.project_id).bind(&request.environment_id)
         .bind(required_cutoff(request)?.to_string()).fetch_all(&mut **transaction).await?,
         Kind::ReplayExpiry => sqlx::query_scalar(
-            "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid AND envelope_kind='replay' AND effective_occurred_at_unix_nano<$4::numeric",
+            "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid AND envelope_kind='replay' AND effective_occurred_at_unix_nano<$4::numeric ORDER BY id LIMIT 10000",
         )
         .bind(&request.organization_id).bind(&request.project_id).bind(&request.environment_id)
         .bind(required_cutoff(request)?.to_string()).fetch_all(&mut **transaction).await?,
         Kind::DataSubject => match request.target_kind {
             Some(TargetKind::InstallationId) => sqlx::query_scalar(
-                "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid AND installation_id=$4",
+                "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid AND installation_id=$4 ORDER BY id LIMIT 10000",
             ).bind(&request.organization_id).bind(&request.project_id).bind(&request.environment_id)
                 .bind(&request.target_value).fetch_all(&mut **transaction).await?,
             Some(TargetKind::SessionId) => sqlx::query_scalar(
-                "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid AND session_id=$4",
+                "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid AND session_id=$4 ORDER BY id LIMIT 10000",
             ).bind(&request.organization_id).bind(&request.project_id).bind(&request.environment_id)
                 .bind(&request.target_value).fetch_all(&mut **transaction).await?,
             Some(TargetKind::ReplayId) => sqlx::query_scalar(
-                "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid AND replay_id=$4",
+                "SELECT id FROM ingest.canonical_envelopes WHERE organization_id=$1::uuid AND project_id=$2::uuid AND environment_id=$3::uuid AND replay_id=$4 ORDER BY id LIMIT 10000",
             ).bind(&request.organization_id).bind(&request.project_id).bind(&request.environment_id)
                 .bind(&request.target_value).fetch_all(&mut **transaction).await?,
             None => return Err(LifecycleError::State("subject target kind missing".to_owned())),
