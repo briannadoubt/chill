@@ -166,7 +166,7 @@ export class ChillApi {
       });
     } catch (cause) {
       if (cause instanceof DOMException && cause.name === "AbortError") throw cause;
-      throw new Error("Could not reach the Chill API. Check the address and network connection.");
+      throw new Error("Could not reach the Chill API. Check the address and network connection.", { cause });
     }
 
     if (!response.ok) {
