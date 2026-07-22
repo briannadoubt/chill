@@ -6,6 +6,7 @@ ARG CADDY_IMAGE=caddy:2.11.4-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497
 FROM ${NODE_IMAGE} AS build
 WORKDIR /src
 COPY console/package.json console/package-lock.json ./
+COPY console/vendor/ ./vendor/
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY console/ ./
 RUN npm run build

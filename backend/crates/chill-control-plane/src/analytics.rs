@@ -142,8 +142,8 @@ impl Store {
         ensure_scope(&mut tx, &scope).await?;
         let saved = sqlx::query_as::<_, (String,String,String,Json<Value>,String,OffsetDateTime)>("SELECT id::text,name,description,plan,visualization,updated_at FROM product.saved_queries WHERE project_id=$1::uuid AND environment_id=$2::uuid AND status='active' ORDER BY lower(name),id")
             .bind(&scope.project_id).bind(&scope.environment_id).fetch_all(&mut *tx).await?.into_iter().map(|row| SavedQuery { id: row.0, name: row.1, description: row.2, plan: row.3.0, visualization: row.4, updated_at: timestamp(row.5) }).collect();
-        let dashboards = sqlx::query_as::<_, (String,String,String,String,Json<Value>,OffsetDateTime)>("SELECT id::text,name,description,sharing,layout,updated_at FROM product.dashboards WHERE project_id=$1::uuid AND environment_id=$2::uuid AND status='active' ORDER BY lower(name),id")
-            .bind(&scope.project_id).bind(&scope.environment_id).fetch_all(&mut *tx).await?.into_iter().map(|row| Dashboard { id: row.0, name: row.1, description: row.2, sharing: row.3, layout: row.4.0, updated_at: timestamp(row.5) }).collect();
+        let dashboards = sqlx::query_as::<_, (String,String,String,String,Json<Value>,OffsetDateTime)>("SELECT id::text,name,description,sharing,layout,updated_at FROM product.dashboards WHERE project_id=$1::uuid AND environment_id=$2::uuid AND status='active' AND (sharing='organization' OR owner_user_id=$3::uuid) ORDER BY lower(name),id")
+            .bind(&scope.project_id).bind(&scope.environment_id).bind(&session.user_id).fetch_all(&mut *tx).await?.into_iter().map(|row| Dashboard { id: row.0, name: row.1, description: row.2, sharing: row.3, layout: row.4.0, updated_at: timestamp(row.5) }).collect();
         let alerts = sqlx::query_as::<_, (String,String,String,String,f64,i32,String,OffsetDateTime,Option<OffsetDateTime>,Option<f64>,Option<String>)>("SELECT id::text,saved_query_id::text,name,operator,threshold,schedule_minutes,status,next_evaluation_at,last_evaluated_at,last_value,last_state FROM product.alerts WHERE project_id=$1::uuid AND environment_id=$2::uuid AND status<>'archived' ORDER BY lower(name),id")
             .bind(&scope.project_id).bind(&scope.environment_id).fetch_all(&mut *tx).await?.into_iter().map(|row| Alert { id: row.0, saved_query_id: row.1, name: row.2, operator: row.3, threshold: row.4, schedule_minutes: row.5, status: row.6, next_evaluation_at: timestamp(row.7), last_evaluated_at: row.8.map(timestamp), last_value: row.9, last_state: row.10 }).collect();
         tx.commit().await?;
@@ -362,6 +362,52 @@ fn validate_create_saved(body: &CreateSavedQueryRequest) -> Result<(), ControlPl
             .contains(&body.visualization.as_str())
     {
         return Err(invalid("query"));
+    }
+    validate_saved_query_plan(&body.plan)?;
+    Ok(())
+}
+
+fn validate_saved_query_plan(plan: &Value) -> Result<(), ControlPlaneError> {
+    let object = plan.as_object().ok_or_else(|| invalid("query plan"))?;
+    if object.get("version").and_then(Value::as_u64) != Some(1) {
+        return Err(invalid("query plan"));
+    }
+    let kind = object
+        .get("kind")
+        .and_then(Value::as_str)
+        .ok_or_else(|| invalid("query plan"))?;
+    let payload_keys = [
+        "events",
+        "trace",
+        "replay",
+        "funnel",
+        "cohort",
+        "aggregate",
+        "path",
+        "retention",
+    ];
+    if !payload_keys.contains(&kind)
+        || payload_keys
+            .iter()
+            .filter(|key| object.contains_key(**key))
+            .count()
+            != 1
+        || !object.get(kind).is_some_and(Value::is_object)
+    {
+        return Err(invalid("query plan"));
+    }
+    let range = object
+        .get("range")
+        .and_then(Value::as_object)
+        .ok_or_else(|| invalid("query plan"))?;
+    let Some(start) = range.get("start_unix_nano").and_then(Value::as_u64) else {
+        return Err(invalid("query plan"));
+    };
+    let Some(end) = range.get("end_unix_nano").and_then(Value::as_u64) else {
+        return Err(invalid("query plan"));
+    };
+    if start >= end {
+        return Err(invalid("query plan"));
     }
     Ok(())
 }

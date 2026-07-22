@@ -64,20 +64,31 @@ pub struct FileCache {
 pub struct AcquiredFiles {
     /// Local paths in catalog order.
     pub paths: Vec<String>,
-    keys: Vec<String>,
+    keys: Option<Vec<String>>,
     state: Arc<Mutex<State>>,
 }
 
 impl AcquiredFiles {
     /// Releases eviction protection for all acquired paths.
-    pub async fn release(self) {
-        let mut state = self.state.lock().await;
-        for key in self.keys {
-            if let Some(entry) = state.entries.get_mut(&key) {
-                entry.references = entry.references.saturating_sub(1);
-                entry.last_used = Instant::now();
-            }
+    pub async fn release(mut self) {
+        if let Some(keys) = self.keys.take() {
+            release_keys_for_state(&self.state, keys).await;
         }
+    }
+}
+
+impl Drop for AcquiredFiles {
+    fn drop(&mut self) {
+        let Some(keys) = self.keys.take() else {
+            return;
+        };
+        let state = Arc::clone(&self.state);
+        let Ok(handle) = tokio::runtime::Handle::try_current() else {
+            return;
+        };
+        handle.spawn(async move {
+            release_keys_for_state(&state, keys).await;
+        });
     }
 }
 
@@ -136,7 +147,7 @@ impl FileCache {
         }
         Ok(AcquiredFiles {
             paths,
-            keys: acquired_keys,
+            keys: Some(acquired_keys),
             state: Arc::clone(&self.state),
         })
     }
@@ -201,6 +212,16 @@ impl FileCache {
                 entry.references = entry.references.saturating_sub(1);
                 entry.last_used = Instant::now();
             }
+        }
+    }
+}
+
+async fn release_keys_for_state(state: &Arc<Mutex<State>>, keys: Vec<String>) {
+    let mut state = state.lock().await;
+    for key in keys {
+        if let Some(entry) = state.entries.get_mut(&key) {
+            entry.references = entry.references.saturating_sub(1);
+            entry.last_used = Instant::now();
         }
     }
 }

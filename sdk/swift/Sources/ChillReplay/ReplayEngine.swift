@@ -22,6 +22,7 @@ package actor ReplayEngine {
   private var suppressedFrames: UInt64 = 0
   private var redactedNodes: UInt64 = 0
   private var evictedChunks: UInt64 = 0
+  private var consentPurgeRequired = false
 
   package init(
     configuration: ChillReplayConfiguration
@@ -36,6 +37,10 @@ package actor ReplayEngine {
   }
 
   package func ingest(_ observation: ReplayObservation) async {
+    guard !consentPurgeRequired else {
+      suppressedFrames &+= 1
+      return
+    }
     if !frames.isEmpty,
       currentSessionID != observation.sessionID
         || currentBootID != observation.bootID
@@ -107,6 +112,10 @@ package actor ReplayEngine {
     occurredAtUnixNano: UInt64,
     monotonicNano: UInt64
   ) async {
+    guard !consentPurgeRequired else {
+      suppressedFrames &+= 1
+      return
+    }
     guard monotonicNano >= lastMonotonicNano else {
       suppressedFrames &+= 1
       return
@@ -159,11 +168,13 @@ package actor ReplayEngine {
   }
 
   package func pendingChunks() -> [ChillReplayChunkDescriptor] {
-    store.descriptors()
+    guard !consentPurgeRequired else { return [] }
+    return store.descriptors()
   }
 
   package func encryptedData(chunkID: String) throws -> Data {
-    try store.encryptedData(chunkID: chunkID)
+    guard !consentPurgeRequired else { throw ChillReplayError.chunkNotFound }
+    return try store.encryptedData(chunkID: chunkID)
   }
 
   package func decodedDocument(
@@ -173,12 +184,15 @@ package actor ReplayEngine {
   }
 
   package func acknowledge(chunkIDs: Set<String>) throws -> Int {
-    try store.acknowledge(chunkIDs: chunkIDs)
+    guard !consentPurgeRequired else { return 0 }
+    return try store.acknowledge(chunkIDs: chunkIDs)
   }
 
   package func purge() throws {
     resetUnsealed()
+    consentPurgeRequired = true
     try store.purge()
+    consentPurgeRequired = false
   }
 
   package func metrics() -> ChillReplayMetrics {

@@ -95,6 +95,8 @@ export interface RuntimeConfiguration {
   readonly sampleRate?: number;
   readonly replaySampleRate?: number;
   readonly maxBufferedRecords?: number;
+  readonly allowedAnnotationKeys?: readonly string[];
+  readonly allowedPayloadKeys?: readonly string[];
   readonly trustedTraceOrigins?: readonly string[];
   readonly fetch?: typeof globalThis.fetch;
   readonly storage?: Storage;
