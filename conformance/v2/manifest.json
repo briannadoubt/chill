@@ -1,0 +1,19 @@
+{
+  "suite_version": "2.0.0",
+  "v1_binding": {"suite_version": "1.0.0", "suite_digest": "1ba86102be5be137d9b2d58362540fdb3dc0a18aeceee6f6363017f2adf65862"},
+  "profiles": {
+    "portable.rust": {"v1_profile":"server.core","platform":"server","adapter":"rust","scenarios":["ipc.metadata_correlation","async.producer_consumer_links","attributes.bounded_default_deny","offline.retry_identity","privacy.ipc_canary_exclusion"]},
+    "server.javascript": {"v1_profile":"server.core","platform":"server","adapter":"javascript","scenarios":["ipc.metadata_correlation","async.producer_consumer_links","attributes.bounded_default_deny","offline.retry_identity","privacy.ipc_canary_exclusion"]},
+    "desktop.electron.host": {"v1_profile":"server.core","platform":"server","adapter":"electron-host","scenarios":["ipc.metadata_correlation","async.producer_consumer_links","attributes.bounded_default_deny","offline.retry_identity","privacy.ipc_canary_exclusion"]},
+    "desktop.electron.renderer": {"v1_profile":"client.core","platform":"web","adapter":"electron-renderer","scenarios":["ipc.metadata_correlation","async.producer_consumer_links","attributes.bounded_default_deny","offline.retry_identity","privacy.ipc_canary_exclusion"]},
+    "desktop.tauri.host": {"v1_profile":"server.core","platform":"server","adapter":"tauri-host","scenarios":["ipc.metadata_correlation","async.producer_consumer_links","attributes.bounded_default_deny","offline.retry_identity","privacy.ipc_canary_exclusion"]},
+    "desktop.tauri.webview": {"v1_profile":"client.core","platform":"web","adapter":"tauri-webview","scenarios":["ipc.metadata_correlation","async.producer_consumer_links","attributes.bounded_default_deny","offline.retry_identity","privacy.ipc_canary_exclusion"]}
+  },
+  "scenarios": [
+    {"id":"ipc.metadata_correlation","domain":"ipc","layers":["model","adapter","wire"],"path":"scenarios/ipc.metadata_correlation.json"},
+    {"id":"async.producer_consumer_links","domain":"async","layers":["model","adapter","wire"],"path":"scenarios/async.producer_consumer_links.json"},
+    {"id":"attributes.bounded_default_deny","domain":"attributes","layers":["model","adapter","wire"],"path":"scenarios/attributes.bounded_default_deny.json"},
+    {"id":"offline.retry_identity","domain":"offline","layers":["model","adapter","wire"],"path":"scenarios/offline.retry_identity.json"},
+    {"id":"privacy.ipc_canary_exclusion","domain":"privacy","layers":["model","adapter","wire"],"path":"scenarios/privacy.ipc_canary_exclusion.json"}
+  ]
+}

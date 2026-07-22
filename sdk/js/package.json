@@ -1,0 +1,14 @@
+{
+  "name": "chill-js-sdk-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "check": "npm run check --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "smoke": "npm run smoke -w @chill-observability/runtime",
+    "pack:verify": "npm run pack:verify --workspaces --if-present"
+  },
+  "devDependencies": { "typescript": "5.8.3", "@types/node": "22.20.1" }
+}

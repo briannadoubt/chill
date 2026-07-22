@@ -1,0 +1,19 @@
+{
+  "name": "@chill-observability/electron",
+  "version": "0.1.0",
+  "description": "Payload-blind Electron instrumentation for Chill",
+  "type": "module",
+  "exports": {
+    "./main": { "types": "./dist/main.d.ts", "import": "./dist/main.js" },
+    "./renderer": { "types": "./dist/renderer.d.ts", "import": "./dist/renderer.js" },
+    "./preload": { "types": "./dist/preload.d.ts", "import": "./dist/preload.js" }
+  },
+  "files": ["dist", "README.md"],
+  "sideEffects": false,
+  "peerDependencies": { "electron": ">=28" },
+  "peerDependenciesMeta": { "electron": { "optional": true } },
+  "devDependencies": { "@types/node": "22.20.1", "typescript": "5.8.3" },
+  "scripts": { "build": "tsc -p tsconfig.json", "check": "tsc -p tsconfig.json --noEmit", "test": "npm run build && node --test tests/*.test.mjs", "pack:verify": "npm pack --dry-run" },
+  "engines": { "node": ">=22" },
+  "license": "Apache-2.0"
+}

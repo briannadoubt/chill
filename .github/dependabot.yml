@@ -75,6 +75,48 @@ updates:
     commit-message:
       prefix: "build(console)"
 
+  - package-ecosystem: cargo
+    directory: /sdk/rust
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:10"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 2
+    groups:
+      portable-rust-crates:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(rust-sdk)"
+
+  - package-ecosystem: npm
+    directory: /sdk/js
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:12"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 2
+    groups:
+      portable-javascript-packages:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(js-sdk)"
+
+  - package-ecosystem: cargo
+    directory: /sdk/tauri
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:14"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 2
+    groups:
+      tauri-crates:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(tauri)"
+
   - package-ecosystem: docker
     directory: /backend
     schedule:

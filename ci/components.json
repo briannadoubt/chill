@@ -55,6 +55,38 @@
       "release_artifact": "npm-package",
       "state": "active",
       "versioning": "coordinated"
+    },
+    {
+      "id": "portable-rust",
+      "owners": ["platform"],
+      "paths": ["sdk/rust"],
+      "release_artifact": "rust-source-archive",
+      "state": "active",
+      "versioning": "coordinated"
+    },
+    {
+      "id": "javascript-runtime",
+      "owners": ["platform"],
+      "paths": ["sdk/js/packages/runtime"],
+      "release_artifact": "javascript-source-archive",
+      "state": "active",
+      "versioning": "coordinated"
+    },
+    {
+      "id": "electron",
+      "owners": ["desktop"],
+      "paths": ["sdk/js/packages/electron"],
+      "release_artifact": "javascript-source-archive",
+      "state": "active",
+      "versioning": "coordinated"
+    },
+    {
+      "id": "tauri",
+      "owners": ["desktop"],
+      "paths": ["sdk/tauri", "sdk/js/packages/tauri"],
+      "release_artifact": "tauri-source-archive",
+      "state": "active",
+      "versioning": "coordinated"
     }
   ],
   "format": "chill-component-registry-v1"

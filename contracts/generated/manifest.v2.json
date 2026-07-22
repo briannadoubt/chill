@@ -1,0 +1,66 @@
+{
+  "contract_version": "2.0.0",
+  "extends": {
+    "contract_version": "1.0.0",
+    "manifest": "contracts/generated/manifest.v1.json",
+    "sha256": "b9823a20cf8c731c339e2a69436e37627a47fe59d0ad6152456a9576ef7c2dd3"
+  },
+  "files": [
+    {
+      "bytes": 10901,
+      "path": "budgets/sdk/v2/budgets.json",
+      "sha256": "e3d91dd2215e6969d14ee63eea186f4f6f06eb2839802d462d3b5bf86b445d9d"
+    },
+    {
+      "bytes": 2520,
+      "path": "conformance/v2/manifest.json",
+      "sha256": "360c49cefd71e9f1d391e0836afd490b0783ccdb1c469c45eedb80ac50447ee7"
+    },
+    {
+      "bytes": 557,
+      "path": "conformance/v2/scenarios/async.producer_consumer_links.json",
+      "sha256": "1a94002b885195ed47ca26540d4d0cef95b1705f45dd1f27bbc5f2fefd21b6e7"
+    },
+    {
+      "bytes": 480,
+      "path": "conformance/v2/scenarios/attributes.bounded_default_deny.json",
+      "sha256": "d70a079f88f16b2c82702bb62d8cf515cbcbee2ad0966703c1e6c6e2cc7c8bbe"
+    },
+    {
+      "bytes": 733,
+      "path": "conformance/v2/scenarios/ipc.metadata_correlation.json",
+      "sha256": "7591a89ddf816561a457e8a3a565be9fe1746534adfb62825080bcb7f1ea87f6"
+    },
+    {
+      "bytes": 416,
+      "path": "conformance/v2/scenarios/offline.retry_identity.json",
+      "sha256": "f399d7fe43e5ee99508a1771b999104c49b3f46b6873d92e5586b742cd34a724"
+    },
+    {
+      "bytes": 467,
+      "path": "conformance/v2/scenarios/privacy.ipc_canary_exclusion.json",
+      "sha256": "49b0cb3b16e0d2ec77b04ea677ff7684e3e15e43a93267314bfabeb8527fe9c2"
+    },
+    {
+      "bytes": 412,
+      "path": "contracts/budgets/v2/__init__.py",
+      "sha256": "c3c40b67a5d389fb04217460d291471bb7bbdc037236f9fecd336fb546a84ca5"
+    },
+    {
+      "bytes": 9101,
+      "path": "contracts/budgets/v2/reference.py",
+      "sha256": "58c97a02420c75ccfff0453ad4e60dbabfee6071ce9791e17402bea22b46933c"
+    },
+    {
+      "bytes": 352,
+      "path": "contracts/conformance/v2/__init__.py",
+      "sha256": "a1038a158e08b74791bf4a72965ce6812f15a26580cb7d99a2462688745c78a6"
+    },
+    {
+      "bytes": 10609,
+      "path": "contracts/conformance/v2/reference.py",
+      "sha256": "de53162647748a79a6e4abb93e79dfbd7e65955756b512cab478bf5e6a0581cb"
+    }
+  ],
+  "format": "chill-contract-integrity-v2"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@chill-observability/tauri",
+  "version": "0.1.0",
+  "description": "Privacy-first metadata-only Tauri command and event correlation for Chill",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "rm -rf dist-tests && tsc -p tsconfig.tests.json && node --test dist-tests/test/*.test.js",
+    "pack:verify": "npm pack --dry-run"
+  },
+  "peerDependencies": { "@tauri-apps/api": "^2.0.0" },
+  "peerDependenciesMeta": { "@tauri-apps/api": { "optional": true } },
+  "devDependencies": { "@types/node": "22.20.1", "typescript": "5.8.3" },
+  "engines": { "node": ">=22" }
+}

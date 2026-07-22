@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0",
+  "catalog": "budgets/sdk/v2/budgets.json",
+  "profiles": ["rust.core", "javascript.runtime", "electron.host", "electron.renderer", "tauri.host", "tauri.webview"],
+  "templates": {
+    "local_presubmit": {"evidence_class": "local presubmit — non-release", "required": ["release-mode build", "schema validation", "synthetic canary scan", "queue cap smoke"], "minimum_runs": 1},
+    "release_evidence": {"evidence_class": "release evidence — blocking", "required": ["signed release candidate", "compiled-out paired baseline", "pinned runtime and machine metadata", "all V2 measurements", "privacy and IPC canary artifacts"], "minimum_runs": 5, "freshness_hours": 168}
+  },
+  "scenarios": [
+    {"id": "portable.local-presubmit", "template": "local_presubmit", "profiles": ["rust.core", "javascript.runtime", "electron.host", "electron.renderer", "tauri.host", "tauri.webview"]},
+    {"id": "portable.release-paired", "template": "release_evidence", "profiles": ["rust.core", "javascript.runtime", "electron.host", "electron.renderer", "tauri.host", "tauri.webview"], "journeys": ["disabled and capture overhead", "30-minute sustained CPU/memory", "offline queue/restart recovery", "network batch", "denied-consent persistence/outbound", "IPC canary scan"]}
+  ]
+}

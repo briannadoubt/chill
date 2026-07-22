@@ -15,7 +15,7 @@ imperatively emit tracking events.
 
 The repository includes:
 
-- idiomatic native SDKs, beginning with SwiftUI and UIKit;
+- idiomatic SDKs for Apple, Android, browsers, Rust, JavaScript runtimes, and desktop hosts;
 - Swift macros for activities and domain events;
 - automatic UI, navigation, network, performance, crash, and lifecycle capture;
 - OpenTelemetry-compatible distributed tracing;
@@ -35,6 +35,11 @@ The repository includes:
 | Integrate an Apple app | [Swift integration](docs/integrating-swift.md) |
 | Integrate a browser app | [Web integration](docs/integrating-web.md) |
 | Integrate an Android app | [Android integration](docs/integrating-android.md) |
+| Integrate a Rust or Linux process | [Rust integration](docs/integrating-rust.md) |
+| Integrate Node, Deno, or Bun | [JavaScript runtime integration](docs/integrating-javascript-runtimes.md) |
+| Integrate an Electron app | [Electron integration](docs/integrating-electron.md) |
+| Integrate a Tauri app | [Tauri integration](docs/integrating-tauri.md) |
+| Check exact target coverage | [Platform support](docs/platform-support.md) |
 | Run the Rust backend locally | [Backend guide](backend/README.md) |
 | Run a single-node deployment | [Operator guide](deploy/single-node/README.md) |
 | Contribute | [Contribution guide](CONTRIBUTING.md) |
@@ -63,6 +68,9 @@ Privacy-safe playback is defined by the
 The service implementation and its measured extraction boundaries are defined
 by the
 [Rust server-platform decision](docs/architecture/adr-0026-rust-server-platform.md).
+Portable Rust, JavaScript runtime, Electron, and Tauri boundaries are defined
+by the
+[portable SDK architecture](docs/architecture/adr-0029-portable-rust-and-desktop-sdks.md).
 Consent changes, remote collection restrictions, privacy exports, and deletion
 fulfillment are defined by the
 [auditable privacy workflow](docs/architecture/adr-0024-consent-export-and-deletion-workflows.md).

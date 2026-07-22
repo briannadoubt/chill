@@ -48,6 +48,33 @@ gzip -n -9 < "$temporary/android.tar" > "$output/chill-android-$version.tar.gz"
 git -C "$ROOT" archive \
   --format=tar \
   --mtime="$source_date" \
+  --prefix="ChillRust-$version/" \
+  --add-file=LICENSE \
+  --add-file=NOTICE \
+  "$commit:sdk/rust" > "$temporary/rust.tar"
+gzip -n -9 < "$temporary/rust.tar" > "$output/chill-rust-$version.tar.gz"
+
+git -C "$ROOT" archive \
+  --format=tar \
+  --mtime="$source_date" \
+  --prefix="ChillJavaScript-$version/" \
+  --add-file=LICENSE \
+  --add-file=NOTICE \
+  "$commit:sdk/js" > "$temporary/javascript.tar"
+gzip -n -9 < "$temporary/javascript.tar" > "$output/chill-javascript-$version.tar.gz"
+
+git -C "$ROOT" archive \
+  --format=tar \
+  --mtime="$source_date" \
+  --prefix="ChillTauri-$version/" \
+  --add-file=LICENSE \
+  --add-file=NOTICE \
+  "$commit:sdk/tauri" > "$temporary/tauri.tar"
+gzip -n -9 < "$temporary/tauri.tar" > "$output/chill-tauri-$version.tar.gz"
+
+git -C "$ROOT" archive \
+  --format=tar \
+  --mtime="$source_date" \
   --prefix="ChillContracts-$version/" \
   "$commit" -- \
   LICENSE NOTICE budgets conformance contracts examples/behavior examples/otlp policies schemas \

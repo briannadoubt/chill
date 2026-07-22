@@ -21,6 +21,11 @@ __pycache__/
 /sdk/web/node_modules/
 /sdk/web/dist/
 /sdk/web/dist-tests/
+/sdk/js/node_modules/
+/sdk/js/packages/*/dist/
+/sdk/js/packages/*/dist-tests/
+/sdk/js/packages/*.tgz
+/sdk/rust/target/
 /sdk/android/.gradle/
 /sdk/android/**/build/
 /sdk/android/local.properties

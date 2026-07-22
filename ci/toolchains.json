@@ -10,6 +10,16 @@
     "kotlin": "2.4.10",
     "min_sdk": 26
   },
+  "bun": {
+    "version": "1.3.12"
+  },
+  "deno": {
+    "version": "2.7.14"
+  },
+  "electron": {
+    "minimum_major": 28,
+    "test_mode": "deterministic-adapter-doubles"
+  },
   "format": "chill-toolchains-v1",
   "github": {
     "linux_runner": "ubuntu-24.04"
@@ -30,5 +40,9 @@
     "runtime_support": "apple-platforms",
     "snapshot_channel": "release/6.4.x",
     "tools_version": "6.4"
+  },
+  "tauri": {
+    "major": 2,
+    "locked_version": "2.11.5"
   }
 }
