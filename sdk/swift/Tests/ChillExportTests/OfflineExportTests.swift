@@ -21,7 +21,9 @@ private func makeActionRecord(
   id: String,
   sequence: UInt64,
   annotationValue: String = "internal",
-  trace: TraceContext? = nil
+  trace: TraceContext? = nil,
+  monotonicNano: UInt64? = nil,
+  durationNano: UInt64? = nil
 ) throws -> BehaviorRecord {
   let declaredAnnotations = try AnnotationContext().addingScope(
     id: AnnotationScopeID("test"),
@@ -46,7 +48,7 @@ private func makeActionRecord(
     clock: RecordClock(
       occurredAtUnixNano: 1_000 + sequence,
       observedAtUnixNano: 1_100 + sequence,
-      monotonicNano: 500 + sequence,
+      monotonicNano: monotonicNano ?? 500 + sequence,
       bootID: try BootID("boot-test"),
       sequenceNumber: sequence
     ),
@@ -65,6 +67,44 @@ private func makeActionRecord(
         role: try SemanticName("button"),
         activation: .primary,
         input: .touch
+      )
+    ),
+    durationNano: durationNano
+  )
+}
+
+private func makeImpressionRecord(visibleDurationNano: UInt64) throws -> BehaviorRecord {
+  BehaviorRecord(
+    schemaVersion: "1.0.0",
+    schemaURL: "https://schemas.chill.dev/behavior/v1/envelope.schema.json",
+    recordID: try RecordID("record-impression-wire"),
+    subjectID: try SubjectID("impression-wire"),
+    sessionID: try SessionID("session-test"),
+    kind: .impression,
+    operation: .instant,
+    name: try SemanticName("cat.card.visible"),
+    clock: RecordClock(
+      occurredAtUnixNano: 1_784_687_848_652_707_200,
+      observedAtUnixNano: 1_784_687_848_652_707_300,
+      monotonicNano: 1_784_687_848_652_707_400,
+      bootID: try BootID("boot-test"),
+      sequenceNumber: 2
+    ),
+    annotations: .empty,
+    page: nil,
+    element: nil,
+    trace: nil,
+    captureClass: .analytics,
+    consent: .granted,
+    policyVersion: "test-v1",
+    redactionState: .none,
+    redactionCount: 0,
+    payload: .impression(
+      try ImpressionPayload(
+        elementID: try SemanticName("cat.card"),
+        role: try SemanticName("card"),
+        visibilityRatio: 1,
+        visibleDurationNano: visibleDurationNano
       )
     ),
     durationNano: nil
@@ -607,6 +647,50 @@ struct OfflineExporterTests {
     #expect(
       decoded["chill.payload.ends_at_unix_nano"] as? String
         == "1784687848652707300"
+    )
+  }
+
+  @Test("Every projected nanosecond value preserves the canonical uint64 string contract")
+  func projectedNanosecondsAreDecimalStrings() throws {
+    let monotonic = UInt64.max - 2
+    let duration = UInt64.max - 1
+    let visibleDuration = UInt64.max
+    let action = try makeActionRecord(
+      id: "record-nanosecond-wire",
+      sequence: 9,
+      monotonicNano: monotonic,
+      durationNano: duration
+    )
+    let actionObject = try #require(
+      JSONSerialization.jsonObject(
+        with: OTLPJSONEncoder.encodeLogRecord(action)
+      ) as? [String: Any]
+    )
+    let actionAttributes = decodeAttributes(
+      try #require(actionObject["attributes"] as? [[String: Any]])
+    )
+    #expect(
+      actionAttributes["chill.clock.monotonic_nano"] as? String
+        == String(monotonic)
+    )
+    #expect(
+      actionAttributes["chill.duration_nano"] as? String
+        == String(duration)
+    )
+
+    let impressionObject = try #require(
+      JSONSerialization.jsonObject(
+        with: OTLPJSONEncoder.encodeLogRecord(
+          makeImpressionRecord(visibleDurationNano: visibleDuration)
+        )
+      ) as? [String: Any]
+    )
+    let impressionAttributes = decodeAttributes(
+      try #require(impressionObject["attributes"] as? [[String: Any]])
+    )
+    #expect(
+      impressionAttributes["chill.payload.visible_duration_nano"] as? String
+        == String(visibleDuration)
     )
   }
 
