@@ -42,7 +42,7 @@ package enum OTLPJSONEncoder {
       "chill.behavior.kind": .string(record.kind.rawValue),
       "chill.behavior.operation": .string(record.operation.rawValue),
       "chill.behavior.name": .string(record.name.rawValue),
-      "chill.clock.monotonic_nano": .integer(record.clock.monotonicNano),
+      "chill.clock.monotonic_nano": .string(String(record.clock.monotonicNano)),
       "chill.clock.boot_id": .string(record.clock.bootID.rawValue),
       "chill.clock.sequence_number": .integer(record.clock.sequenceNumber),
       "chill.privacy.capture_class": .string(record.captureClass.rawValue),
@@ -70,7 +70,7 @@ package enum OTLPJSONEncoder {
       )
     }
     if let duration = record.durationNano {
-      attributes["chill.duration_nano"] = .integer(duration)
+      attributes["chill.duration_nano"] = .string(String(duration))
     }
     for (name, classification) in record.annotations.classifications {
       guard let value = record.annotations.values[name],
@@ -181,7 +181,7 @@ package enum OTLPJSONEncoder {
         value.visibilityRatio
       )
       if let duration = value.visibleDurationNano {
-        attributes["\(prefix).visible_duration_nano"] = .integer(duration)
+        attributes["\(prefix).visible_duration_nano"] = .string(String(duration))
       }
     case .action(let value):
       attributes["\(prefix).element_id"] = .string(value.elementID.rawValue)
@@ -223,11 +223,14 @@ package enum OTLPJSONEncoder {
       attributes["chill.context.replay_id"] = .string(value.replayID)
       attributes["\(prefix).chunk_id"] = .string(value.chunkID)
       attributes["\(prefix).chunk_index"] = .integer(UInt64(value.chunkIndex))
-      attributes["\(prefix).starts_at_unix_nano"] = .integer(
-        value.startsAtUnixNano
+      // The canonical behavior schema represents uint64 values as decimal
+      // strings so JSON consumers never lose nanosecond precision. Preserve
+      // that contract even though OTLP supports an integer AnyValue.
+      attributes["\(prefix).starts_at_unix_nano"] = .string(
+        String(value.startsAtUnixNano)
       )
-      attributes["\(prefix).ends_at_unix_nano"] = .integer(
-        value.endsAtUnixNano
+      attributes["\(prefix).ends_at_unix_nano"] = .string(
+        String(value.endsAtUnixNano)
       )
       attributes["\(prefix).sha256"] = .string(value.sha256)
       attributes["\(prefix).byte_count"] = .integer(value.byteCount)
