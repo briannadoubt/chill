@@ -10,5 +10,5 @@
     "smoke": "npm run smoke -w @chill-observability/runtime",
     "pack:verify": "npm run pack:verify --workspaces --if-present"
   },
-  "devDependencies": { "typescript": "5.8.3", "@types/node": "22.20.1" }
+  "devDependencies": { "typescript": "7.0.2", "@types/node": "26.1.1" }
 }
