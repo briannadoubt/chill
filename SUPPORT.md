@@ -8,6 +8,8 @@ commercial support commitment.
 - Use the issue forms for reproducible defects and scoped feature requests.
 - Read the component guides in `docs/`, `backend/`, `sdk/`, and `deploy/`
   before filing a request.
+- Check the exact maintained and best-effort targets in
+  [`docs/platform-support.md`](docs/platform-support.md).
 - Follow `SECURITY.md` for vulnerabilities; never disclose them in public.
 
 Include the Chill revision, operating system, toolchain versions, relevant

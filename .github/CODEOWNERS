@@ -13,4 +13,8 @@
 /sdk/android/ @briannadoubt
 /sdk/swift/ @briannadoubt
 /sdk/web/ @briannadoubt
+/sdk/rust/ @briannadoubt
+/sdk/js/ @briannadoubt
+/sdk/tauri/ @briannadoubt
 /validation/apple/ @briannadoubt
+/validation/portable/ @briannadoubt

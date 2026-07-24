@@ -1310,6 +1310,7 @@ dependencies = [
  "chill-control-plane",
  "chill-ingest",
  "chill-migrations",
+ "chill-observability",
  "hex",
  "jsonschema",
  "opentelemetry-proto",
@@ -1337,6 +1338,18 @@ dependencies = [
  "object_store",
  "sha2 0.11.0",
  "thiserror",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "chill-observability"
+version = "0.1.0"
+dependencies = [
+ "getrandom 0.3.4",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
  "tokio",
  "uuid",
 ]
@@ -3793,6 +3806,8 @@ dependencies = [
  "rustls",
  "rustls-pki-types",
  "rustls-platform-verifier",
+ "serde",
+ "serde_json",
  "sync_wrapper",
  "tokio",
  "tokio-rustls",
@@ -5074,6 +5089,7 @@ checksum = "bf3923a6f5c4c6382e0b653c4117f48d631ea17f38ed86e2a828e6f7412f5239"
 dependencies = [
  "getrandom 0.4.3",
  "js-sys",
+ "serde_core",
  "wasm-bindgen",
 ]
 

@@ -27,11 +27,13 @@ must be stable SemVer, preventing a tag from silently publishing a differently
 identified SDK or backend image.
 
 The canonical contract is versioned independently through its declared
-contract major. `contracts/generated/manifest.v1.json` binds every tracked JSON
-or Python contract input to its byte count and SHA-256 digest. The deterministic
-generator uses the Git index, not the untracked working tree, so local exports,
-device artifacts, and editor copies cannot enter a release accidentally. CI
-rejects a stale generated manifest.
+contract major. `contracts/generated/manifest.v1.json` binds every V1 tracked
+JSON or Python input to its byte count and SHA-256 digest. Later contract-major
+manifests, beginning with `manifest.v2.json`, contain only their versioned
+extension inputs and cryptographically bind the unchanged V1 manifest. The
+deterministic generator uses the Git index, not the untracked working tree, so
+local exports, device artifacts, and editor copies cannot enter a release
+accidentally. CI rejects any stale generated manifest.
 
 ## Reproducible builds and test matrix
 
@@ -49,6 +51,8 @@ Pull requests and the default branch run these independent gates:
   reproducible source-archive comparison;
 - Rust unit, Clippy, formatting, Postgres/object-store integration, and OCI
   image build checks; and
+- portable Rust/Linux, Node, Deno, Bun, Electron, and Tauri package,
+  conformance, privacy, and compatibility checks; and
 - Swift manifest parsing, dependency-lock resolution, source formatting, and a
   public imperative-API source guard in the digest-pinned Swift 6.4 Linux
   snapshot.
@@ -68,8 +72,9 @@ A stable `vX.Y.Z` tag is the only publishing trigger. The production environment
 may require a reviewer in repository settings. The workflow re-verifies the
 tag and generated contracts, then:
 
-1. creates deterministic Swift and contract source archives from the tagged
-   commit, plus a digest manifest;
+1. creates deterministic Swift, Android, browser, portable Rust, JavaScript,
+   Tauri, and contract source archives from the tagged commit, plus a digest
+   manifest;
 2. produces signed GitHub artifact attestations for those files;
 3. builds the backend image for Linux AMD64 and ARM64 using commit-derived
    build metadata;
@@ -86,11 +91,12 @@ pass the normal pull-request matrix.
 ## Dependency updates and ownership
 
 CODEOWNERS makes the initial maintainer the explicit reviewer for every path.
-Dependabot checks GitHub Actions, Cargo dependencies, Swift packages, Python contract
-validation, Dockerfiles, and Compose files weekly. Update concurrency is kept
-small and ecosystem updates are grouped where practical so a one-developer
-project gets timely supply-chain changes without an unmanageable pull-request
-queue. Every update still passes the same repository and component matrix.
+Dependabot checks GitHub Actions, backend/portable/Tauri Cargo dependencies,
+Swift packages, JavaScript packages, Python contract validation, Dockerfiles,
+and Compose files weekly. Update concurrency is kept small and ecosystem
+updates are grouped where practical so a one-developer project gets timely
+supply-chain changes without an unmanageable pull-request queue. Every update
+still passes the same repository and component matrix.
 
 This is intentionally frugal: hosted CI and GHCR are used before introducing a
 dedicated build platform, signing service, or package promotion system. The

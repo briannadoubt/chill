@@ -279,7 +279,10 @@ impl Decoder {
             }
         }
         if let Some(value) = duration {
-            canonical.insert("duration_nano".to_owned(), value);
+            canonical.insert(
+                "duration_nano".to_owned(),
+                Value::String(unsigned(Some(&value), "duration_nano")?.to_string()),
+            );
         }
         let (trace_id, span_id) = append_trace(&mut canonical, log, trace_extras)?;
         let digest = Sha256::digest(serde_json::to_vec(&json!({

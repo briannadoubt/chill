@@ -25,6 +25,7 @@ tracing.workspace = true
 
 [dev-dependencies]
 anyhow.workspace = true
+chill-observability = { path = "../../../sdk/rust" }
 chill-migrations = { path = "../chill-migrations" }
 chill-ingest = { path = "../chill-ingest" }
 uuid.workspace = true

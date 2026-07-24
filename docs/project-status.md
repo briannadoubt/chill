@@ -14,6 +14,10 @@ service or a production support offering.
 | Swift SDK | Complete first vertical slice with Apple-specific validation |
 | Android SDK | Active implementation with contract, lint, test, and budget gates |
 | Browser SDK | Active implementation with contract, test, and bundle gates |
+| Portable Rust SDK | Active Linux implementation with contract, package, and cross-target gates |
+| Node, Deno, and Bun SDK | Active ESM runtime with pinned compatibility and package gates |
+| Electron adapter | Active metadata-only IPC and lifecycle adapter; deterministic adapter coverage |
+| Tauri 2 adapter | Active Rust host and webview correlation packages; deterministic adapter coverage |
 | React console | Working client; authentication and hosting adapters are deployment-specific |
 | Self-hosted deployment | Reproducible single-node and provider examples |
 | Managed cloud service | Not offered |
@@ -40,3 +44,6 @@ hosted CI for release-critical SDK checks, and a stated support policy.
 
 Until then, pin exact versions or commit SHAs and test upgrades against your own
 data and infrastructure.
+
+The exact runtime and target matrix, including current non-goals, is maintained
+in [platform support](platform-support.md).

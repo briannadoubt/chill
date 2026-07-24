@@ -1,0 +1,12 @@
+{
+  "name": "@chill-observability/runtime",
+  "version": "0.1.0",
+  "description": "Privacy-first portable server runtime for Chill observability",
+  "type": "module",
+  "sideEffects": false,
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }, "./node": { "types": "./dist/node.d.ts", "default": "./dist/node.js" }, "./deno": { "types": "./dist/deno.d.ts", "default": "./dist/deno.js" }, "./bun": { "types": "./dist/bun.d.ts", "default": "./dist/bun.js" } },
+  "files": ["dist", "README.md", "examples"],
+  "scripts": { "build": "tsc -p tsconfig.json", "check": "tsc -p tsconfig.json --noEmit", "test": "npm run build && node --test test/*.test.mjs", "pack:verify": "npm pack --dry-run", "smoke": "npm run build && node scripts/packed-smoke.mjs", "ingest:smoke": "npm run build && node scripts/ingest-smoke.mjs node ../dist/node.js" },
+  "engines": { "node": ">=22" },
+  "license": "Apache-2.0"
+}

@@ -12,6 +12,7 @@ from urllib.parse import unquote
 ROOT = Path(__file__).resolve().parents[1]
 DOCUMENTS = (
     ROOT / "README.md",
+    ROOT / "CHANGELOG.md",
     ROOT / "CODE_OF_CONDUCT.md",
     ROOT / "CONTRIBUTING.md",
     ROOT / "GOVERNANCE.md",
@@ -19,6 +20,12 @@ DOCUMENTS = (
     ROOT / "SUPPORT.md",
     ROOT / "docs" / "project-status.md",
     ROOT / "docs" / "integrating-swift.md",
+    ROOT / "docs" / "integrating-rust.md",
+    ROOT / "docs" / "integrating-javascript-runtimes.md",
+    ROOT / "docs" / "integrating-electron.md",
+    ROOT / "docs" / "integrating-tauri.md",
+    ROOT / "docs" / "platform-support.md",
+    ROOT / "docs" / "architecture" / "adr-0029-portable-rust-and-desktop-sdks.md",
     ROOT / "docs" / "releasing.md",
     ROOT / "sdk" / "swift" / "Examples" / "README.md",
 )

@@ -14,7 +14,8 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-GENERATED_MANIFEST = ROOT / "contracts" / "generated" / "manifest.v1.json"
+GENERATED_DIRECTORY = ROOT / "contracts" / "generated"
+GENERATED_MANIFEST = GENERATED_DIRECTORY / "manifest.v1.json"
 CONTRACT_PREFIXES = (
     "budgets",
     "conformance",
@@ -61,7 +62,28 @@ def canonical_json(value: Any) -> bytes:
     return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode()
 
 
-def tracked_contract_paths() -> list[Path]:
+def generated_manifest_path(contract_major: int) -> Path:
+    return GENERATED_DIRECTORY / f"manifest.v{contract_major}.json"
+
+
+def _belongs_to_contract_major(relative: Path, contract_major: int) -> bool:
+    value = relative.as_posix()
+    versioned_prefixes = (
+        "budgets/sdk/",
+        "conformance/",
+        "contracts/budgets/",
+        "contracts/conformance/",
+    )
+    for prefix in versioned_prefixes:
+        if value.startswith(prefix):
+            remainder = value.removeprefix(prefix)
+            version = remainder.split("/", 1)[0]
+            if re.fullmatch(r"v[0-9]+", version):
+                return version == f"v{contract_major}"
+    return contract_major == 1
+
+
+def tracked_contract_paths(contract_major: int = 1) -> list[Path]:
     command = ["git", "ls-files", "-z", "--", *CONTRACT_PREFIXES]
     result = subprocess.run(
         command,
@@ -74,9 +96,11 @@ def tracked_contract_paths() -> list[Path]:
         if not raw:
             continue
         relative = Path(raw.decode())
-        if relative == GENERATED_MANIFEST.relative_to(ROOT):
+        if relative.parent == GENERATED_DIRECTORY.relative_to(ROOT):
             continue
         if relative.suffix not in CONTRACT_SUFFIXES:
+            continue
+        if not _belongs_to_contract_major(relative, contract_major):
             continue
         path = ROOT / relative
         if path.is_symlink() or not path.is_file():
@@ -89,10 +113,12 @@ def tracked_contract_paths() -> list[Path]:
     return sorted(paths, key=lambda path: path.as_posix())
 
 
-def manifest_payload() -> dict[str, Any]:
-    suite = load_json(ROOT / "conformance" / "v1" / "manifest.json")
+def manifest_payload(contract_major: int = 1) -> dict[str, Any]:
+    suite = load_json(
+        ROOT / "conformance" / f"v{contract_major}" / "manifest.json"
+    )
     entries: list[dict[str, Any]] = []
-    for relative in tracked_contract_paths():
+    for relative in tracked_contract_paths(contract_major):
         body = (ROOT / relative).read_bytes()
         entries.append(
             {
@@ -101,11 +127,20 @@ def manifest_payload() -> dict[str, Any]:
                 "sha256": hashlib.sha256(body).hexdigest(),
             }
         )
-    return {
+    payload: dict[str, Any] = {
         "contract_version": suite["suite_version"],
         "files": entries,
-        "format": "chill-contract-integrity-v1",
+        "format": f"chill-contract-integrity-v{contract_major}",
     }
+    if contract_major > 1:
+        base_path = generated_manifest_path(1)
+        base = load_json(base_path)
+        payload["extends"] = {
+            "contract_version": base["contract_version"],
+            "manifest": base_path.relative_to(ROOT).as_posix(),
+            "sha256": hashlib.sha256(base_path.read_bytes()).hexdigest(),
+        }
+    return payload
 
 
 def validate_action_pins(workflow: Path, body: str) -> list[str]:
@@ -191,6 +226,21 @@ def validate_toolchains() -> list[str]:
         errors.append("Rust toolchain manifest and backend/Cargo.toml disagree")
     if f"rust:{rust_version}-" not in dockerfile:
         errors.append("Rust toolchain manifest and backend/Dockerfile disagree")
+    portable_manifest = (ROOT / "sdk" / "rust" / "Cargo.toml").read_text(
+        encoding="utf-8"
+    )
+    if f'rust-version = "{rust_version.removesuffix(".0")}"' not in portable_manifest:
+        errors.append("Rust toolchain manifest and portable Rust SDK disagree")
+
+    javascript = load_json(ROOT / "sdk" / "js" / "package.json")
+    if javascript.get("devDependencies", {}).get("typescript") != toolchains["node"][
+        "web_typescript"
+    ]:
+        errors.append("TypeScript toolchain manifest and JavaScript SDK disagree")
+    tauri_lock = (ROOT / "sdk" / "tauri" / "Cargo.lock").read_text(encoding="utf-8")
+    tauri_version = toolchains["tauri"]["locked_version"]
+    if f'name = "tauri"\nversion = "{tauri_version}"' not in tauri_lock:
+        errors.append("Tauri toolchain manifest and lockfile disagree")
 
     swift_version = toolchains["swift"]["tools_version"]
     package = (ROOT / "sdk" / "swift" / "Package.swift").read_text(encoding="utf-8")
@@ -226,6 +276,10 @@ def validate_workflows() -> list[str]:
             "documentation": "scripts/validate_documentation.py",
             "backend integration": "scripts/test-backend-integration.sh",
             "Swift package contract": "scripts/validate-swift-package-linux.sh",
+            "portable conformance": "scripts/run-portable-conformance.sh",
+            "portable Rust SDK": "working-directory: sdk/rust",
+            "portable JavaScript SDK": "working-directory: sdk/js",
+            "Tauri SDK": "working-directory: sdk/tauri",
             "OCI build": "docker/build-push-action@",
         }
         for gate, token in required_gates.items():
@@ -238,6 +292,8 @@ def validate_workflows() -> list[str]:
             ("runner", f"runs-on: {toolchains['github']['linux_runner']}"),
             ("Python", f'python-version: "{toolchains["python"]["version"]}"'),
             ("Rust", f"rustup toolchain install {toolchains['rust']['version']}"),
+            ("Deno", f'deno-version: "{toolchains["deno"]["version"]}"'),
+            ("Bun", f'bun-version: "{toolchains["bun"]["version"]}"'),
         )
         for name, token in expected_versions:
             if token not in body:
@@ -306,14 +362,22 @@ def validate_version(release_tag: str | None) -> list[str]:
 
 def verify(release_tag: str | None) -> list[str]:
     errors: list[str] = []
-    expected = canonical_json(manifest_payload())
-    if not GENERATED_MANIFEST.exists():
-        errors.append(f"generated contract manifest is missing: {GENERATED_MANIFEST}")
-    elif GENERATED_MANIFEST.read_bytes() != expected:
-        errors.append(
-            "generated contract manifest is stale; run "
-            "python3 scripts/repository_contract.py update"
-        )
+    majors = sorted(
+        int(path.parent.name.removeprefix("v"))
+        for path in (ROOT / "conformance").glob("v*/manifest.json")
+        if re.fullmatch(r"v[0-9]+", path.parent.name)
+    )
+    for contract_major in majors:
+        generated = generated_manifest_path(contract_major)
+        expected = canonical_json(manifest_payload(contract_major))
+        if not generated.exists():
+            errors.append(f"generated contract manifest is missing: {generated}")
+        elif generated.read_bytes() != expected:
+            errors.append(
+                "generated contract manifest is stale; run "
+                "python3 scripts/repository_contract.py update "
+                f"--contract-major {contract_major}"
+            )
     errors.extend(validate_components())
     errors.extend(validate_toolchains())
     errors.extend(validate_workflows())
@@ -325,7 +389,12 @@ def verify(release_tag: str | None) -> list[str]:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("update", help="rewrite the deterministic contract manifest")
+    update_parser = subparsers.add_parser(
+        "update", help="rewrite one deterministic contract manifest"
+    )
+    update_parser.add_argument(
+        "--contract-major", type=int, default=1, choices=range(1, 100)
+    )
     verify_parser = subparsers.add_parser("verify", help="verify repository invariants")
     verify_parser.add_argument("--release-tag", help="require a stable matching vX.Y.Z tag")
     return parser.parse_args()
@@ -335,9 +404,10 @@ def main() -> int:
     args = parse_args()
     try:
         if args.command == "update":
-            GENERATED_MANIFEST.parent.mkdir(parents=True, exist_ok=True)
-            GENERATED_MANIFEST.write_bytes(canonical_json(manifest_payload()))
-            print(GENERATED_MANIFEST.relative_to(ROOT))
+            generated = generated_manifest_path(args.contract_major)
+            generated.parent.mkdir(parents=True, exist_ok=True)
+            generated.write_bytes(canonical_json(manifest_payload(args.contract_major)))
+            print(generated.relative_to(ROOT))
             return 0
         errors = verify(args.release_tag)
     except (OSError, KeyError, TypeError, json.JSONDecodeError, subprocess.CalledProcessError, RepositoryContractError) as error:

@@ -7,15 +7,18 @@ publish production artifacts.
 ## Prepare a release
 
 1. Choose a stable SemVer version and replace the contents of `VERSION`.
-2. Regenerate the contract integrity manifest:
+2. Regenerate every contract-major integrity manifest:
 
    ```sh
-   python3 scripts/repository_contract.py update
+   python3 scripts/repository_contract.py update --contract-major 1
+   python3 scripts/repository_contract.py update --contract-major 2
    ```
 
-3. Run the repository, contract, backend, Swift, simulator, and required
-   physical-device release gates. The physical Apple report must satisfy the
-   catalog in `validation/apple/v1/profiler-scenarios.json`.
+3. Run the repository, contract, backend, Rust, JavaScript runtime, Electron,
+   Tauri, Swift, simulator, and required physical-device release gates. The
+   physical Apple report must satisfy the catalog in
+   `validation/apple/v1/profiler-scenarios.json`; portable reports must bind the
+   V2 suite digest and satisfy `budgets/sdk/v2/budgets.json`.
 4. Merge the reviewed release-preparation change only after CI succeeds.
 5. Create and push an annotated tag that exactly matches the version:
 
@@ -38,6 +41,9 @@ The workflow publishes:
 - `chill-swift-<version>.tar.gz`;
 - `chill-web-<version>.tar.gz`;
 - `chill-android-<version>.tar.gz`;
+- `chill-rust-<version>.tar.gz`;
+- `chill-javascript-<version>.tar.gz`, containing the runtime, Electron, and Tauri TypeScript packages;
+- `chill-tauri-<version>.tar.gz`, containing the Rust host adapter;
 - `chill-contracts-<version>.tar.gz`;
 - `manifest.json`, containing commit, size, and SHA-256 identity; and
 - a multi-platform backend image in GHCR.
