@@ -227,8 +227,9 @@ fn quote_literal(value: &str) -> String {
 }
 
 #[allow(
+    clippy::match_same_arms,
     clippy::too_many_lines,
-    reason = "exhaustive DuckDB scalar conversion keeps unsupported composites fail-closed"
+    reason = "document current unsupported composites while future DuckDB variants fail closed"
 )]
 fn to_json(value: Value) -> std::result::Result<JsonValue, EngineError> {
     Ok(match value {
@@ -261,6 +262,7 @@ fn to_json(value: Value) -> std::result::Result<JsonValue, EngineError> {
         | Value::Array(_)
         | Value::Map(_)
         | Value::Union(_) => return Err(EngineError::UnsupportedValue),
+        _ => return Err(EngineError::UnsupportedValue),
     })
 }
 
