@@ -35,7 +35,7 @@ getrandom = "0.4.3"
 hex = "0.4.3"
 hmac = "0.13.0"
 http-body-util = "0.1.4"
-jsonschema = { version = "0.48.0", default-features = false }
+jsonschema = { version = "0.52.0", default-features = false }
 opentelemetry-proto = { version = "0.32.0", default-features = false, features = ["gen-tonic", "logs", "metrics", "trace", "with-serde"] }
 object_store = { version = "0.14.1", default-features = false, features = ["aws", "fs"] }
 parquet = { version = "59.1.0", default-features = false, features = ["arrow", "zstd"] }
