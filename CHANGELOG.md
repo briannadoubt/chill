@@ -9,6 +9,9 @@ pre-1.0; release notes call out contract and compatibility changes explicitly.
 
 - A source-only Unity 2022.3+ package with consent-gated scene, action, event,
   impression, and activity semantics plus bounded at-least-once OTLP delivery.
+- A source-only Unreal Engine 5.4+ plugin with consent-gated sessions, pages,
+  actions, events, impressions, and activities, a crash-safe durable queue, and
+  bounded OTLP/HTTP delivery through a game instance subsystem.
 - A standalone portable Rust SDK with Linux support, durable OTLP/HTTP export,
   semantic events/actions/activities, async trace context, trusted propagation,
   lifecycle and privacy-safe panic reporting.

@@ -45,6 +45,11 @@
     "major": 2,
     "locked_version": "2.11.5"
   },
+  "unreal": {
+    "hosted_ci_status": "source-contract-plus-local-editor",
+    "minimum_version": "5.4",
+    "validated_engine": "5.8.2"
+  },
   "unity": {
     "hosted_ci_status": "source-contract-plus-local-editor",
     "minimum_version": "2022.3",

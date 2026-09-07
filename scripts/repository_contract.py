@@ -312,6 +312,7 @@ def validate_workflows() -> list[str]:
             "portable JavaScript SDK": "working-directory: sdk/js",
             "Tauri SDK": "working-directory: sdk/tauri",
             "Unity SDK": "scripts/validate-unity-sdk.py",
+            "Unreal SDK": "scripts/validate-unreal-sdk.py",
             "OCI build": "docker/build-push-action@",
         }
         for gate, token in required_gates.items():
@@ -371,6 +372,7 @@ def validate_public_repository() -> list[str]:
         ROOT / "backend" / "Cargo.toml",
         ROOT / "sdk" / "web" / "package.json",
         ROOT / "sdk" / "unity" / "package.json",
+        ROOT / "sdk" / "unreal" / "Chill.uplugin",
     ):
         if "Apache-2.0" not in manifest.read_text(encoding="utf-8"):
             errors.append(f"{manifest.relative_to(ROOT)} does not declare Apache-2.0")
