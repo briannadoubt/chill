@@ -7,9 +7,7 @@ targets = [
 ]
 
 [advisories]
-ignore = [
-  { id = "RUSTSEC-2024-0436", reason = "Informational unmaintained notice in the Apache Arrow Parquet dependency; no vulnerability or safe replacement is available. Track removal in CHILL-40's mitigation register." },
-]
+ignore = []
 
 [licenses]
 confidence-threshold = 0.8

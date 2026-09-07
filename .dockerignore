@@ -7,6 +7,9 @@
 !schemas/behavior/
 !schemas/behavior/v1/
 !schemas/behavior/v1/envelope.schema.json
+!sdk/
+!sdk/rust/
+!sdk/rust/**
 !console/
 !console/**
 !LICENSE
@@ -14,5 +17,6 @@
 backend/target
 backend/**/target
 backend/testdata
+sdk/rust/target
 console/dist
 console/node_modules
