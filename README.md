@@ -15,7 +15,7 @@ imperatively emit tracking events.
 
 The repository includes:
 
-- idiomatic SDKs for Apple, Android, browsers, Rust, JavaScript runtimes, and desktop hosts;
+- idiomatic SDKs for Apple, Android, browsers, Unity, Rust, JavaScript runtimes, and desktop hosts;
 - Swift macros for activities and domain events;
 - automatic UI, navigation, network, performance, crash, and lifecycle capture;
 - OpenTelemetry-compatible distributed tracing;
@@ -35,6 +35,7 @@ The repository includes:
 | Integrate an Apple app | [Swift integration](docs/integrating-swift.md) |
 | Integrate a browser app | [Web integration](docs/integrating-web.md) |
 | Integrate an Android app | [Android integration](docs/integrating-android.md) |
+| Integrate a Unity game | [Unity integration](docs/integrating-unity.md) |
 | Integrate a Rust or Linux process | [Rust integration](docs/integrating-rust.md) |
 | Integrate Node, Deno, or Bun | [JavaScript runtime integration](docs/integrating-javascript-runtimes.md) |
 | Integrate an Electron app | [Electron integration](docs/integrating-electron.md) |
@@ -71,6 +72,8 @@ by the
 Portable Rust, JavaScript runtime, Electron, and Tauri boundaries are defined
 by the
 [portable SDK architecture](docs/architecture/adr-0029-portable-rust-and-desktop-sdks.md).
+Unity's source-only C# and player-target boundary is defined by the
+[Unity SDK architecture](docs/architecture/adr-0030-unity-sdk.md).
 Consent changes, remote collection restrictions, privacy exports, and deletion
 fulfillment are defined by the
 [auditable privacy workflow](docs/architecture/adr-0024-consent-export-and-deletion-workflows.md).

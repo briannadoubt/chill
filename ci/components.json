@@ -57,6 +57,14 @@
       "versioning": "coordinated"
     },
     {
+      "id": "unity",
+      "owners": ["game-clients"],
+      "paths": ["sdk/unity"],
+      "release_artifact": "unity-source-package",
+      "state": "active",
+      "versioning": "coordinated"
+    },
+    {
       "id": "portable-rust",
       "owners": ["platform"],
       "paths": ["sdk/rust"],

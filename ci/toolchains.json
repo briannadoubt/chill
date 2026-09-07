@@ -44,5 +44,11 @@
   "tauri": {
     "major": 2,
     "locked_version": "2.11.5"
+  },
+  "unity": {
+    "hosted_ci_status": "source-contract-plus-local-editor",
+    "minimum_version": "2022.3",
+    "test_framework": "1.7.0",
+    "validated_editor": "6000.5.4f1"
   }
 }

@@ -15,7 +15,7 @@ publish production artifacts.
    ```
 
 3. Run the repository, contract, backend, Rust, JavaScript runtime, Electron,
-   Tauri, Swift, simulator, and required physical-device release gates. The
+   Tauri, Unity, Swift, simulator, and required physical-device release gates. The
    physical Apple report must satisfy the catalog in
    `validation/apple/v1/profiler-scenarios.json`; portable reports must bind the
    V2 suite digest and satisfy `budgets/sdk/v2/budgets.json`.
@@ -44,6 +44,7 @@ The workflow publishes:
 - `chill-rust-<version>.tar.gz`;
 - `chill-javascript-<version>.tar.gz`, containing the runtime, Electron, and Tauri TypeScript packages;
 - `chill-tauri-<version>.tar.gz`, containing the Rust host adapter;
+- `chill-unity-<version>.tar.gz`, containing the source-only Unity package;
 - `chill-contracts-<version>.tar.gz`;
 - `manifest.json`, containing commit, size, and SHA-256 identity; and
 - a multi-platform backend image in GHCR.

@@ -14,6 +14,7 @@ service or a production support offering.
 | Swift SDK | Complete first vertical slice with Apple-specific validation |
 | Android SDK | Active implementation with contract, lint, test, and budget gates |
 | Browser SDK | Active implementation with contract, test, and bundle gates |
+| Unity SDK | Active UPM package with Unity Test Framework coverage, declarative components, and bounded OTLP delivery |
 | Portable Rust SDK | Active Linux implementation with contract, package, and cross-target gates |
 | Node, Deno, and Bun SDK | Active ESM runtime with pinned compatibility and package gates |
 | Electron adapter | Active metadata-only IPC and lifecycle adapter; deterministic adapter coverage |

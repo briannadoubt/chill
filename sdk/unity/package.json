@@ -1,0 +1,29 @@
+{
+  "name": "com.chill.observability",
+  "version": "0.1.0",
+  "displayName": "Chill Observability",
+  "description": "Privacy-first semantic behavior instrumentation and OTLP delivery for Unity.",
+  "unity": "2022.3",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Chill Contributors",
+    "url": "https://github.com/briannadoubt/chill"
+  },
+  "dependencies": {
+    "com.unity.modules.unitywebrequest": "1.0.0"
+  },
+  "keywords": [
+    "analytics",
+    "observability",
+    "opentelemetry",
+    "privacy",
+    "telemetry"
+  ],
+  "samples": [
+    {
+      "displayName": "Basic Integration",
+      "description": "Configures Chill and declares scene, action, event, and activity semantics.",
+      "path": "Samples~/BasicIntegration"
+    }
+  ]
+}

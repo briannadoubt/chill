@@ -1,0 +1,323 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "test.game"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "csharp"
+            }
+          },
+          {
+            "key": "process.runtime.name",
+            "value": {
+              "stringValue": "unity"
+            }
+          },
+          {
+            "key": "process.runtime.version",
+            "value": {
+              "stringValue": "6000.5.4f1"
+            }
+          },
+          {
+            "key": "os.type",
+            "value": {
+              "stringValue": "macos"
+            }
+          },
+          {
+            "key": "chill.game.engine",
+            "value": {
+              "stringValue": "unity"
+            }
+          },
+          {
+            "key": "chill.source.platform",
+            "value": {
+              "stringValue": "server"
+            }
+          },
+          {
+            "key": "chill.source.process_id",
+            "value": {
+              "stringValue": "c7a9d7af-f2bd-4572-8c5c-ccf0dcfea27c"
+            }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "dev.chill.unity",
+            "version": "0.1.0"
+          },
+          "schemaUrl": "https://schemas.chill.dev/behavior/v1/envelope.schema.json",
+          "logRecords": [
+            {
+              "timeUnixNano": "1700000000000000000",
+              "observedTimeUnixNano": "1700000000000000000",
+              "eventName": "app.session",
+              "traceId": "3f9210b901779af5ef01cbf62d929603",
+              "spanId": "ba97a1ab30975e93",
+              "flags": 1,
+              "attributes": [
+                {
+                  "key": "chill.schema.version",
+                  "value": {
+                    "stringValue": "1.0.0"
+                  }
+                },
+                {
+                  "key": "chill.schema.url",
+                  "value": {
+                    "stringValue": "https://schemas.chill.dev/behavior/v1/envelope.schema.json"
+                  }
+                },
+                {
+                  "key": "chill.record.id",
+                  "value": {
+                    "stringValue": "018bcfe5-6800-7a4a-b865-a041100266e9"
+                  }
+                },
+                {
+                  "key": "chill.subject.id",
+                  "value": {
+                    "stringValue": "018bcfe5-6800-7d3e-bfe1-c5998652eabb"
+                  }
+                },
+                {
+                  "key": "chill.behavior.kind",
+                  "value": {
+                    "stringValue": "session"
+                  }
+                },
+                {
+                  "key": "chill.behavior.operation",
+                  "value": {
+                    "stringValue": "start"
+                  }
+                },
+                {
+                  "key": "chill.behavior.name",
+                  "value": {
+                    "stringValue": "app.session"
+                  }
+                },
+                {
+                  "key": "chill.clock.sequence_number",
+                  "value": {
+                    "intValue": "1"
+                  }
+                },
+                {
+                  "key": "chill.source.platform",
+                  "value": {
+                    "stringValue": "server"
+                  }
+                },
+                {
+                  "key": "chill.source.installation_id",
+                  "value": {
+                    "stringValue": "10203040-5060-4080-9010-203040506070"
+                  }
+                },
+                {
+                  "key": "chill.context.session_id",
+                  "value": {
+                    "stringValue": "018bcfe5-6800-7d3e-bfe1-c5998652eabb"
+                  }
+                },
+                {
+                  "key": "chill.privacy.consent",
+                  "value": {
+                    "stringValue": "granted"
+                  }
+                },
+                {
+                  "key": "chill.privacy.policy_version",
+                  "value": {
+                    "stringValue": "privacy-v1"
+                  }
+                },
+                {
+                  "key": "chill.privacy.capture_class",
+                  "value": {
+                    "stringValue": "analytics"
+                  }
+                },
+                {
+                  "key": "chill.privacy.redaction_state",
+                  "value": {
+                    "stringValue": "none"
+                  }
+                },
+                {
+                  "key": "chill.clock.monotonic_nano",
+                  "value": {
+                    "intValue": "1000000"
+                  }
+                },
+                {
+                  "key": "chill.clock.boot_id",
+                  "value": {
+                    "stringValue": "381ea402-16fc-4578-8a7b-311d6c6ce10e"
+                  }
+                },
+                {
+                  "key": "chill.source.process_id",
+                  "value": {
+                    "stringValue": "c7a9d7af-f2bd-4572-8c5c-ccf0dcfea27c"
+                  }
+                }
+              ]
+            },
+            {
+              "timeUnixNano": "1700000000000000000",
+              "observedTimeUnixNano": "1700000000000000000",
+              "eventName": "match.started",
+              "traceId": "87aa5c92f52456405e4fcdda99141a72",
+              "spanId": "ac33be38365477cb",
+              "flags": 1,
+              "attributes": [
+                {
+                  "key": "chill.schema.version",
+                  "value": {
+                    "stringValue": "1.0.0"
+                  }
+                },
+                {
+                  "key": "chill.schema.url",
+                  "value": {
+                    "stringValue": "https://schemas.chill.dev/behavior/v1/envelope.schema.json"
+                  }
+                },
+                {
+                  "key": "chill.record.id",
+                  "value": {
+                    "stringValue": "018bcfe5-6800-7793-91fa-3ecb9584e458"
+                  }
+                },
+                {
+                  "key": "chill.subject.id",
+                  "value": {
+                    "stringValue": "018bcfe5-6800-7793-91fa-3ecb9584e458"
+                  }
+                },
+                {
+                  "key": "chill.behavior.kind",
+                  "value": {
+                    "stringValue": "event"
+                  }
+                },
+                {
+                  "key": "chill.behavior.operation",
+                  "value": {
+                    "stringValue": "instant"
+                  }
+                },
+                {
+                  "key": "chill.behavior.name",
+                  "value": {
+                    "stringValue": "match.started"
+                  }
+                },
+                {
+                  "key": "chill.clock.sequence_number",
+                  "value": {
+                    "intValue": "2"
+                  }
+                },
+                {
+                  "key": "chill.source.platform",
+                  "value": {
+                    "stringValue": "server"
+                  }
+                },
+                {
+                  "key": "chill.source.installation_id",
+                  "value": {
+                    "stringValue": "10203040-5060-4080-9010-203040506070"
+                  }
+                },
+                {
+                  "key": "chill.context.session_id",
+                  "value": {
+                    "stringValue": "018bcfe5-6800-7d3e-bfe1-c5998652eabb"
+                  }
+                },
+                {
+                  "key": "chill.privacy.consent",
+                  "value": {
+                    "stringValue": "granted"
+                  }
+                },
+                {
+                  "key": "chill.privacy.policy_version",
+                  "value": {
+                    "stringValue": "privacy-v1"
+                  }
+                },
+                {
+                  "key": "chill.privacy.capture_class",
+                  "value": {
+                    "stringValue": "analytics"
+                  }
+                },
+                {
+                  "key": "chill.privacy.redaction_state",
+                  "value": {
+                    "stringValue": "none"
+                  }
+                },
+                {
+                  "key": "chill.clock.monotonic_nano",
+                  "value": {
+                    "intValue": "1000000"
+                  }
+                },
+                {
+                  "key": "chill.clock.boot_id",
+                  "value": {
+                    "stringValue": "381ea402-16fc-4578-8a7b-311d6c6ce10e"
+                  }
+                },
+                {
+                  "key": "chill.source.process_id",
+                  "value": {
+                    "stringValue": "c7a9d7af-f2bd-4572-8c5c-ccf0dcfea27c"
+                  }
+                },
+                {
+                  "key": "chill.payload.event_class",
+                  "value": {
+                    "stringValue": "domain"
+                  }
+                },
+                {
+                  "key": "chill.payload.severity",
+                  "value": {
+                    "stringValue": "info"
+                  }
+                },
+                {
+                  "key": "chill.payload.emission",
+                  "value": {
+                    "stringValue": "observed"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
