@@ -18,7 +18,8 @@ pub use access::{
 };
 pub use analytics::{
     Alert, AnalyticsScope, AnalyticsWorkspace, CreateAlertRequest, CreateDashboardRequest,
-    CreateSavedQueryRequest, Dashboard, DebuggerSnapshot, SavedQuery,
+    CreateSavedQueryRequest, Dashboard, DebuggerSnapshot, SavedQuery, UpdateDashboardRequest,
+    UpdateSavedQueryRequest,
 };
 pub use bootstrap::{
     BootstrapDataSource, BootstrapEnvironment, BootstrapOwner, BootstrapPrivacyPolicy,

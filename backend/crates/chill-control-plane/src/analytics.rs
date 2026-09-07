@@ -37,9 +37,29 @@ pub struct CreateSavedQueryRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct UpdateSavedQueryRequest {
+    pub name: String,
+    #[serde(default)]
+    pub description: String,
+    pub plan: Value,
+    pub visualization: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CreateDashboardRequest {
     pub project_id: String,
     pub environment_id: String,
+    pub name: String,
+    #[serde(default)]
+    pub description: String,
+    pub sharing: String,
+    pub layout: Value,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct UpdateDashboardRequest {
     pub name: String,
     #[serde(default)]
     pub description: String,
@@ -182,6 +202,46 @@ impl Store {
         })
     }
 
+    pub async fn update_saved_query(
+        &self,
+        raw: &str,
+        id: &str,
+        body: UpdateSavedQueryRequest,
+    ) -> Result<SavedQuery, ControlPlaneError> {
+        validate_uuid(id)?;
+        validate_saved_query_fields(
+            &body.name,
+            &body.description,
+            &body.plan,
+            &body.visualization,
+        )?;
+        let session = self
+            .require_user_capability(raw, Capability::ControlWrite)
+            .await?;
+        let mut tx = self.begin_tenant(&session.organization_id).await?;
+        let row = sqlx::query_as::<_, (String,String,String,Json<Value>,String,OffsetDateTime)>(
+            "UPDATE product.saved_queries SET name=$2,description=$3,plan=$4,visualization=$5,updated_at=clock_timestamp() WHERE id=$1::uuid AND status='active' RETURNING id::text,name,description,plan,visualization,updated_at",
+        )
+        .bind(id)
+        .bind(&body.name)
+        .bind(&body.description)
+        .bind(Json(body.plan))
+        .bind(&body.visualization)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(map_conflict)?
+        .ok_or(ControlPlaneError::Forbidden)?;
+        tx.commit().await?;
+        Ok(SavedQuery {
+            id: row.0,
+            name: row.1,
+            description: row.2,
+            plan: row.3.0,
+            visualization: row.4,
+            updated_at: timestamp(row.5),
+        })
+    }
+
     pub async fn create_dashboard(
         &self,
         raw: &str,
@@ -217,6 +277,41 @@ impl Store {
             sharing: body.sharing,
             layout: body.layout,
             updated_at: timestamp(row.1),
+        })
+    }
+
+    pub async fn update_dashboard(
+        &self,
+        raw: &str,
+        id: &str,
+        body: UpdateDashboardRequest,
+    ) -> Result<Dashboard, ControlPlaneError> {
+        validate_uuid(id)?;
+        validate_dashboard_fields(&body.name, &body.description, &body.sharing, &body.layout)?;
+        let session = self
+            .require_user_capability(raw, Capability::ControlWrite)
+            .await?;
+        let mut tx = self.begin_tenant(&session.organization_id).await?;
+        let row = sqlx::query_as::<_, (String,String,String,String,Json<Value>,OffsetDateTime)>(
+            "UPDATE product.dashboards SET name=$2,description=$3,sharing=$4,layout=$5,updated_at=clock_timestamp() WHERE id=$1::uuid AND status='active' RETURNING id::text,name,description,sharing,layout,updated_at",
+        )
+        .bind(id)
+        .bind(&body.name)
+        .bind(&body.description)
+        .bind(&body.sharing)
+        .bind(Json(body.layout))
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(map_conflict)?
+        .ok_or(ControlPlaneError::Forbidden)?;
+        tx.commit().await?;
+        Ok(Dashboard {
+            id: row.0,
+            name: row.1,
+            description: row.2,
+            sharing: row.3,
+            layout: row.4.0,
+            updated_at: timestamp(row.5),
         })
     }
 
@@ -351,19 +446,52 @@ fn validate_create_saved(body: &CreateSavedQueryRequest) -> Result<(), ControlPl
         project_id: body.project_id.clone(),
         environment_id: body.environment_id.clone(),
     })?;
-    validate_text(&body.name, 160, "query name")?;
-    validate_text_optional(&body.description, 2000, "query description")?;
-    if !body.plan.is_object()
-        || serde_json::to_vec(&body.plan)
+    validate_saved_query_fields(
+        &body.name,
+        &body.description,
+        &body.plan,
+        &body.visualization,
+    )
+}
+
+fn validate_saved_query_fields(
+    name: &str,
+    description: &str,
+    plan: &Value,
+    visualization: &str,
+) -> Result<(), ControlPlaneError> {
+    validate_text(name, 160, "query name")?;
+    validate_text_optional(description, 2000, "query description")?;
+    if !plan.is_object()
+        || serde_json::to_vec(plan)
             .map_err(|_| invalid("query plan"))?
             .len()
             > 65_536
-        || !["table", "line", "bar", "funnel", "retention", "path"]
-            .contains(&body.visualization.as_str())
+        || !["table", "line", "bar", "funnel", "retention", "path"].contains(&visualization)
     {
         return Err(invalid("query"));
     }
-    validate_saved_query_plan(&body.plan)?;
+    validate_saved_query_plan(plan)?;
+    Ok(())
+}
+
+fn validate_dashboard_fields(
+    name: &str,
+    description: &str,
+    sharing: &str,
+    layout: &Value,
+) -> Result<(), ControlPlaneError> {
+    validate_text(name, 160, "dashboard name")?;
+    validate_text_optional(description, 2000, "dashboard description")?;
+    if !["private", "organization"].contains(&sharing)
+        || !layout.is_array()
+        || serde_json::to_vec(layout)
+            .map_err(|_| invalid("dashboard layout"))?
+            .len()
+            > 65_536
+    {
+        return Err(invalid("dashboard"));
+    }
     Ok(())
 }
 

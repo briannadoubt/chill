@@ -15,8 +15,9 @@ use chill_control_plane::{
     ControlPlaneError, CreateAlertRequest, CreateDashboardRequest, CreateDataSourceRequest,
     CreateEnvironmentRequest, CreateProjectRequest, CreateSDKKeyRequest, CreateSavedQueryRequest,
     CreateSchemaRequest, CredentialIssuer, CredentialKind, ServiceCredentialRequest,
-    SetCollectionPolicyRequest, SitesAuthentication, Store, VerifiedIdentity, collection_router,
-    console_router, parse_credential_prefix, sites_auth_router,
+    SetCollectionPolicyRequest, SitesAuthentication, Store, UpdateDashboardRequest,
+    UpdateSavedQueryRequest, VerifiedIdentity, collection_router, console_router,
+    parse_credential_prefix, sites_auth_router,
 };
 use http_body_util::BodyExt as _;
 use sqlx::{Executor as _, PgPool, postgres::PgPoolOptions};
@@ -239,6 +240,56 @@ async fn console_routes_preserve_tenant_isolation() -> Result<()> {
         )
         .await
         .context("create scheduled alert")?;
+    let updated_query = store
+        .update_saved_query(
+            &session.raw,
+            &saved_query.id,
+            UpdateSavedQueryRequest {
+                name: "Signup conversion — rolling".to_owned(),
+                description: "Seven-day release signal".to_owned(),
+                plan: serde_json::json!({
+                    "version": 1,
+                    "kind": "aggregate",
+                    "range": {
+                        "start_unix_nano": 1,
+                        "end_unix_nano": 2,
+                        "relative": {"amount": 7, "unit": "day"}
+                    },
+                    "aggregate": {
+                        "metric": "count",
+                        "dimension": "none",
+                        "interval": "day",
+                        "filter": {"behavior_kind": "", "operation": "", "name": "user.signed_up", "annotations": {}},
+                        "limit": 30
+                    }
+                }),
+                visualization: "bar".to_owned(),
+            },
+        )
+        .await
+        .context("update saved analytics query")?;
+    assert_eq!(updated_query.name, "Signup conversion — rolling");
+    assert_eq!(updated_query.visualization, "bar");
+    assert_eq!(updated_query.plan["range"]["relative"]["amount"], 7);
+    let updated_dashboard = store
+        .update_dashboard(
+            &session.raw,
+            &dashboard.id,
+            UpdateDashboardRequest {
+                name: "Release health".to_owned(),
+                description: "Shared rolling release dashboard".to_owned(),
+                sharing: "private".to_owned(),
+                layout: serde_json::json!([{
+                    "saved_query_id": saved_query.id.clone(),
+                    "width": 1
+                }]),
+            },
+        )
+        .await
+        .context("update analytics dashboard")?;
+    assert_eq!(updated_dashboard.name, "Release health");
+    assert_eq!(updated_dashboard.sharing, "private");
+    assert_eq!(updated_dashboard.layout[0]["width"], 1);
     let analytics = store
         .analytics_workspace(
             &session.raw,
@@ -251,6 +302,11 @@ async fn console_routes_preserve_tenant_isolation() -> Result<()> {
         .context("read analytics workspace")?;
     assert_eq!(analytics.saved_queries.len(), 1);
     assert_eq!(analytics.dashboards[0].id, dashboard.id);
+    assert_eq!(
+        analytics.saved_queries[0].name,
+        "Signup conversion — rolling"
+    );
+    assert_eq!(analytics.dashboards[0].name, "Release health");
     assert_eq!(analytics.alerts[0].id, alert.id);
     let debugger = store
         .debugger_snapshot(
