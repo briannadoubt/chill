@@ -7,6 +7,8 @@ pre-1.0; release notes call out contract and compatibility changes explicitly.
 
 ### Added
 
+- A source-only Unity 2022.3+ package with consent-gated scene, action, event,
+  impression, and activity semantics plus bounded at-least-once OTLP delivery.
 - A standalone portable Rust SDK with Linux support, durable OTLP/HTTP export,
   semantic events/actions/activities, async trace context, trusted propagation,
   lifecycle and privacy-safe panic reporting.

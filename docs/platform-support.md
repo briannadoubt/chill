@@ -10,6 +10,7 @@ promise.
 | Apple platforms | `sdk/swift` | Complete first vertical slice | `apple` | SwiftUI, UIKit/AppKit, lifecycle, networking, durable export, structural replay |
 | Android | `sdk/android` | Active | `android` | Compose, Views, lifecycle, networking, durable export, structural replay |
 | Browser and React | `sdk/web` | Active | `web` | DOM/React semantics, navigation, fetch/XHR, durable export, structural replay |
+| Unity 2022.3+ | `sdk/unity` | Active | target-dependent | C# sessions, scene pages, hierarchy context, actions, events, activities, bounded durable OTLP export |
 | Rust on Linux GNU | `sdk/rust` | Active | `server` | Semantic events/activities, async context, lifecycle/panic hooks, durable OTLP export |
 | Tauri 2 host | `sdk/tauri` | Active | `server` | Rust lifecycle and metadata-only command correlation |
 | Tauri webview | browser SDK + `@chill-observability/tauri` | Active | `web` | Browser behavior plus metadata-only command correlation |
@@ -28,6 +29,11 @@ carried in OpenTelemetry resource attributes such as `process.runtime.name`,
 
 - Rust uses the repository-pinned stable toolchain. Linux release checks cover
   `x86_64-unknown-linux-gnu` and `aarch64-unknown-linux-gnu`.
+- Unity support starts at 2022.3 LTS, uses the package's C# source under Mono
+  or IL2CPP, and requires no native plug-in. The canonical source family is
+  selected from the player target: Android, Apple, web, or server. Console
+  platform transport and storage behavior remains subject to the platform
+  holder's Unity module and network policy.
 - Tauri support targets major version 2 and uses explicit semantic command
   wrappers; arbitrary plugin or payload inspection is unsupported.
 - Electron support targets maintained Electron releases whose embedded Node

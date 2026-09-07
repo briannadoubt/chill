@@ -3,6 +3,8 @@
 .vscode/
 *.swp
 *~
+!sdk/unity/Samples~/
+!sdk/unity/Samples~/**
 
 .venv/
 __pycache__/

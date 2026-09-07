@@ -75,6 +75,15 @@ gzip -n -9 < "$temporary/tauri.tar" > "$output/chill-tauri-$version.tar.gz"
 git -C "$ROOT" archive \
   --format=tar \
   --mtime="$source_date" \
+  --prefix="ChillUnity-$version/" \
+  --add-file=LICENSE \
+  --add-file=NOTICE \
+  "$commit:sdk/unity" > "$temporary/unity.tar"
+gzip -n -9 < "$temporary/unity.tar" > "$output/chill-unity-$version.tar.gz"
+
+git -C "$ROOT" archive \
+  --format=tar \
+  --mtime="$source_date" \
   --prefix="ChillContracts-$version/" \
   "$commit" -- \
   LICENSE NOTICE budgets conformance contracts examples/behavior examples/otlp policies schemas \

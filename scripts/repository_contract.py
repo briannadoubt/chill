@@ -311,6 +311,7 @@ def validate_workflows() -> list[str]:
             "portable Rust SDK": "working-directory: sdk/rust",
             "portable JavaScript SDK": "working-directory: sdk/js",
             "Tauri SDK": "working-directory: sdk/tauri",
+            "Unity SDK": "scripts/validate-unity-sdk.py",
             "OCI build": "docker/build-push-action@",
         }
         for gate, token in required_gates.items():
@@ -366,7 +367,11 @@ def validate_public_repository() -> list[str]:
         if private_value in fly_config:
             errors.append(f"fly.toml contains a deployment-specific value: {private_value}")
 
-    for manifest in (ROOT / "backend" / "Cargo.toml", ROOT / "sdk" / "web" / "package.json"):
+    for manifest in (
+        ROOT / "backend" / "Cargo.toml",
+        ROOT / "sdk" / "web" / "package.json",
+        ROOT / "sdk" / "unity" / "package.json",
+    ):
         if "Apache-2.0" not in manifest.read_text(encoding="utf-8"):
             errors.append(f"{manifest.relative_to(ROOT)} does not declare Apache-2.0")
     web_license = ROOT / "sdk" / "web" / "LICENSE"
