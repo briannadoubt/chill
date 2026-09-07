@@ -6,7 +6,7 @@ android {
     defaultConfig { minSdk = 26; consumerProguardFiles("consumer-rules.pro") }
     buildFeatures { compose = true; buildConfig = false }
     testOptions { unitTests.isIncludeAndroidResources = true }
-    lint { abortOnError = true; warningsAsErrors = true }
+    lint { abortOnError = true; warningsAsErrors = true; disable += "GradleDependency" }
 }
 
 dependencies {

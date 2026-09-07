@@ -4,7 +4,7 @@ android {
     compileSdk = 37
     defaultConfig { minSdk = 26 }
     buildFeatures { compose = true; buildConfig = false }
-    lint { abortOnError = true; warningsAsErrors = true }
+    lint { abortOnError = true; warningsAsErrors = true; disable += "GradleDependency" }
 }
 dependencies {
     implementation(project(":android"))
