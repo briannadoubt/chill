@@ -74,6 +74,9 @@ updates:
         patterns: ["*"]
     commit-message:
       prefix: "build(console)"
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: cargo
     directory: /sdk/rust
@@ -102,6 +105,9 @@ updates:
         patterns: ["*"]
     commit-message:
       prefix: "build(js-sdk)"
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: cargo
     directory: /sdk/tauri
