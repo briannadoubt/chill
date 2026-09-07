@@ -1,0 +1,27 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "Chill Observability",
+	"Description": "Privacy-first semantic behavior instrumentation and OTLP delivery for Unreal Engine.",
+	"Category": "Analytics",
+	"CreatedBy": "Chill Contributors",
+	"CreatedByURL": "https://github.com/briannadoubt/chill",
+	"DocsURL": "https://github.com/briannadoubt/chill/blob/main/docs/integrating-unreal.md",
+	"SupportURL": "https://github.com/briannadoubt/chill/issues",
+	"License": "Apache-2.0",
+	"CanContainContent": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "ChillObservability",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault"
+		},
+		{
+			"Name": "ChillObservabilityTests",
+			"Type": "UncookedOnly",
+			"LoadingPhase": "Default"
+		}
+	]
+}
