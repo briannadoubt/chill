@@ -3,8 +3,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "09:00"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 2
@@ -17,8 +16,7 @@ updates:
   - package-ecosystem: cargo
     directory: /backend
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "09:15"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 2
@@ -31,41 +29,46 @@ updates:
   - package-ecosystem: swift
     directory: /sdk/swift
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "09:30"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 1
+    groups:
+      swift-packages:
+        patterns: ["*"]
     commit-message:
       prefix: "build(swift)"
 
   - package-ecosystem: swift
     directory: /sdk/swift/Examples
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "09:45"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 1
+    groups:
+      swift-example-packages:
+        patterns: ["*"]
     commit-message:
       prefix: "build(swift-examples)"
 
   - package-ecosystem: pip
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "10:00"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 1
+    groups:
+      python-packages:
+        patterns: ["*"]
     commit-message:
       prefix: "build(python)"
 
   - package-ecosystem: npm
     directory: /console
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "10:05"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 2
@@ -81,8 +84,7 @@ updates:
   - package-ecosystem: cargo
     directory: /sdk/rust
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "10:10"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 2
@@ -95,8 +97,7 @@ updates:
   - package-ecosystem: npm
     directory: /sdk/js
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "10:12"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 2
@@ -112,8 +113,7 @@ updates:
   - package-ecosystem: cargo
     directory: /sdk/tauri
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "10:14"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 2
@@ -126,32 +126,38 @@ updates:
   - package-ecosystem: docker
     directory: /backend
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "10:15"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 1
+    groups:
+      backend-base-images:
+        patterns: ["*"]
     commit-message:
       prefix: "build(container)"
 
   - package-ecosystem: docker-compose
     directory: /backend
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "10:30"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 1
+    groups:
+      dev-images:
+        patterns: ["*"]
     commit-message:
       prefix: "build(dev-images)"
 
   - package-ecosystem: docker-compose
     directory: /deploy/single-node
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "10:45"
       timezone: America/Los_Angeles
     open-pull-requests-limit: 1
+    groups:
+      deploy-images:
+        patterns: ["*"]
     commit-message:
       prefix: "build(deploy-images)"
