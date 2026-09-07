@@ -3,6 +3,7 @@ use std::{sync::Arc, time::Duration};
 use chill_query::{Plan, Result as QueryResult, Scope, Service as QueryService};
 use serde_json::Value;
 use sqlx::{PgPool, types::Json};
+use time::OffsetDateTime;
 use tracing::{error, info, warn};
 
 type ClaimedAlert = (
@@ -35,27 +36,19 @@ async fn evaluate_due(database: &PgPool, query: &QueryService) -> anyhow::Result
     .fetch_all(database)
     .await?;
     let count = alerts.len();
-    for (id, organization_id, project_id, environment_id, Json(plan), operator, threshold, _) in
+    for (id, organization_id, project_id, environment_id, Json(mut plan), operator, threshold, _) in
         alerts
     {
+        if let Err(cause) = resolve_relative_range(&mut plan, OffsetDateTime::now_utc()) {
+            warn!(alert_id = %id, %cause, "scheduled analytics alert range is malformed");
+            complete_error(database, &id).await?;
+            continue;
+        }
         let plan: Plan = match serde_json::from_value(plan) {
             Ok(value) => value,
             Err(cause) => {
                 warn!(alert_id = %id, %cause, "scheduled analytics alert plan is malformed");
-                let completed = sqlx::query_scalar::<_, bool>(
-                    "SELECT product.complete_alert_evaluation($1::uuid,$2,$3)",
-                )
-                .bind(&id)
-                .bind(0.0_f64)
-                .bind("error")
-                .fetch_one(database)
-                .await?;
-                if !completed {
-                    warn!(
-                        alert_id = %id,
-                        "malformed scheduled analytics alert was no longer active at completion"
-                    );
-                }
+                complete_error(database, &id).await?;
                 continue;
             }
         };
@@ -96,6 +89,54 @@ async fn evaluate_due(database: &PgPool, query: &QueryService) -> anyhow::Result
     Ok(())
 }
 
+async fn complete_error(database: &PgPool, id: &str) -> anyhow::Result<()> {
+    let completed =
+        sqlx::query_scalar::<_, bool>("SELECT product.complete_alert_evaluation($1::uuid,$2,$3)")
+            .bind(id)
+            .bind(0.0_f64)
+            .bind("error")
+            .fetch_one(database)
+            .await?;
+    if !completed {
+        warn!(alert_id = %id, "malformed scheduled analytics alert was no longer active at completion");
+    }
+    Ok(())
+}
+
+fn resolve_relative_range(plan: &mut Value, now: OffsetDateTime) -> anyhow::Result<()> {
+    let Some(range) = plan.get_mut("range").and_then(Value::as_object_mut) else {
+        return Ok(());
+    };
+    let Some(relative) = range.get("relative") else {
+        return Ok(());
+    };
+    let relative = relative
+        .as_object()
+        .ok_or_else(|| anyhow::anyhow!("relative range must be an object"))?;
+    let amount = relative
+        .get("amount")
+        .and_then(Value::as_u64)
+        .filter(|amount| (1..=744).contains(amount))
+        .ok_or_else(|| anyhow::anyhow!("relative range amount is invalid"))?;
+    let nanos_per_unit = match relative.get("unit").and_then(Value::as_str) {
+        Some("hour") => 3_600_000_000_000_u64,
+        Some("day") => 86_400_000_000_000_u64,
+        Some("week") => 604_800_000_000_000_u64,
+        _ => return Err(anyhow::anyhow!("relative range unit is invalid")),
+    };
+    let end = u64::try_from(now.unix_timestamp_nanos())
+        .map_err(|_| anyhow::anyhow!("current time is outside the query range"))?;
+    let duration = amount
+        .checked_mul(nanos_per_unit)
+        .ok_or_else(|| anyhow::anyhow!("relative range duration overflowed"))?;
+    let start = end
+        .checked_sub(duration)
+        .ok_or_else(|| anyhow::anyhow!("relative range starts before the Unix epoch"))?;
+    range.insert("start_unix_nano".into(), Value::from(start));
+    range.insert("end_unix_nano".into(), Value::from(end));
+    Ok(())
+}
+
 fn alert_value(result: &QueryResult) -> Option<f64> {
     result.rows.first().and_then(|row| {
         row.iter().rev().find_map(|value| match value {
@@ -120,6 +161,7 @@ fn compare(operator: &str, value: f64, threshold: f64) -> bool {
 mod tests {
     use chill_query::{Result, Stats};
     use serde_json::json;
+    use time::macros::datetime;
 
     use super::*;
 
@@ -144,5 +186,40 @@ mod tests {
             stats: Stats::default(),
         };
         assert_eq!(alert_value(&result), None);
+    }
+
+    #[test]
+    fn refreshes_relative_saved_query_ranges_before_scheduled_evaluation() {
+        let mut plan = json!({
+            "version": 1,
+            "kind": "aggregate",
+            "range": {
+                "start_unix_nano": 1,
+                "end_unix_nano": 2,
+                "relative": { "amount": 7, "unit": "day" }
+            },
+            "aggregate": {}
+        });
+        let now = datetime!(2026-07-24 12:00 UTC);
+        let resolution = resolve_relative_range(&mut plan, now);
+        assert!(resolution.is_ok(), "{resolution:?}");
+        let end = u64::try_from(now.unix_timestamp_nanos()).unwrap_or_default();
+        assert_eq!(plan["range"]["end_unix_nano"], json!(end));
+        assert_eq!(
+            plan["range"]["start_unix_nano"],
+            json!(end - 7 * 86_400_000_000_000_u64)
+        );
+    }
+
+    #[test]
+    fn rejects_malformed_relative_saved_query_ranges() {
+        let mut plan = json!({
+            "range": {
+                "start_unix_nano": 1,
+                "end_unix_nano": 2,
+                "relative": { "amount": 0, "unit": "day" }
+            }
+        });
+        assert!(resolve_relative_range(&mut plan, datetime!(2026-07-24 12:00 UTC)).is_err());
     }
 }

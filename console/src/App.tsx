@@ -8,7 +8,7 @@ import {
 } from "react";
 import type { ChillBrowser } from "@chill-observability/browser";
 import { ChillApi } from "./api";
-import { AnalyticsStudio } from "./Analytics";
+import { AnalyticsStudio, type AnalyticsConnectionState } from "./Analytics";
 import {
   SESSION_KEYS,
   bootstrapPrivateSession,
@@ -66,6 +66,7 @@ export function App() {
   );
   const [automaticLoginError, setAutomaticLoginError] = useState("");
   const [telemetry, setTelemetry] = useState<ChillBrowser | null>(null);
+  const [analyticsConnection, setAnalyticsConnection] = useState<AnalyticsConnectionState>("loading");
 
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEYS.token)) return;
@@ -133,11 +134,13 @@ export function App() {
     const firstEnvironment = project?.environments[0]?.id ?? "";
     setEnvironmentPreference(firstEnvironment);
     sessionStorage.setItem(SESSION_KEYS.environment, firstEnvironment);
+    setAnalyticsConnection("loading");
   };
 
   const chooseEnvironment = (environmentId: string) => {
     setEnvironmentPreference(environmentId);
     sessionStorage.setItem(SESSION_KEYS.environment, environmentId);
+    setAnalyticsConnection("loading");
   };
 
   const navigate = (destination: View) => {
@@ -240,6 +243,15 @@ export function App() {
   const canWrite = overview.actor.capabilities.includes("control:write");
   const canManageKeys = overview.actor.capabilities.includes("credentials:manage");
   const canReadData = overview.actor.capabilities.includes("data:read");
+  const connectionIssue = Boolean(loadError)
+    || (view === "explore" && (analyticsConnection === "error" || analyticsConnection === "stale"));
+  const connectionLabel = loadError || (view === "explore" && analyticsConnection === "error")
+    ? "API issue"
+    : view === "explore" && analyticsConnection === "stale"
+      ? "Stale data"
+      : view === "explore" && analyticsConnection === "loading"
+        ? "Connecting"
+        : "Connected";
 
   return (
     <div className="app-shell">
@@ -293,8 +305,8 @@ export function App() {
             onAddEnvironment={() => setScopeDialog("environment")}
           />
           <div className="topbar-actions">
-            <span className={loadError ? "status-dot warning" : "status-dot"} aria-hidden="true" />
-            <span className="api-status">{loadError ? "API issue" : "Connected"}</span>
+            <span className={connectionIssue ? "status-dot warning" : "status-dot"} aria-hidden="true" />
+            <span className="api-status">{connectionLabel}</span>
             <button className="icon-button" type="button" onClick={refreshOverview} aria-label="Refresh console">
               <Icon name="refresh" />
             </button>
@@ -337,6 +349,7 @@ export function App() {
                   environment={selectedEnvironment}
                   canRead={canReadData}
                   canWrite={canWrite}
+                  onConnectionState={setAnalyticsConnection}
                 />
               )}
               {view === "keys" && api && (
@@ -625,8 +638,8 @@ function OverviewPage({ apiBase, project, environment, onNavigate }: { apiBase: 
 
 type ActionRunner = (label: string, operation: () => Promise<void>, success: string) => Promise<void>;
 
-function ExplorePage({ api, project, environment, canRead, canWrite }: { api: ChillApi; project: ConsoleProject; environment: ConsoleEnvironment; canRead: boolean; canWrite: boolean }) {
-  return <AnalyticsStudio api={api} project={project} environment={environment} canRead={canRead} canWrite={canWrite} />;
+function ExplorePage({ api, project, environment, canRead, canWrite, onConnectionState }: { api: ChillApi; project: ConsoleProject; environment: ConsoleEnvironment; canRead: boolean; canWrite: boolean; onConnectionState: (state: AnalyticsConnectionState) => void }) {
+  return <AnalyticsStudio api={api} project={project} environment={environment} canRead={canRead} canWrite={canWrite} onConnectionState={onConnectionState} />;
 }
 
 function SourcesPage({ api, apiBase, project, environment, canWrite, pending, runAction }: { api: ChillApi; apiBase: string; project: ConsoleProject; environment: ConsoleEnvironment; canWrite: boolean; pending: string; runAction: ActionRunner }) {

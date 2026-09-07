@@ -13,6 +13,7 @@ use crate::{
     ActivatePrivacyRequest, ActivateSamplingRequest, AnalyticsScope, ControlPlaneError,
     CreateAlertRequest, CreateDashboardRequest, CreateDataSourceRequest, CreateEnvironmentRequest,
     CreateProjectRequest, CreateSDKKeyRequest, CreateSavedQueryRequest, CreateSchemaRequest, Store,
+    UpdateDashboardRequest, UpdateSavedQueryRequest,
 };
 
 const MAXIMUM_CONSOLE_REQUEST_BYTES: usize = 1 << 20;
@@ -37,7 +38,9 @@ pub fn console_router(store: Store) -> Router {
         .route("/v1/console/analytics", get(analytics_workspace))
         .route("/v1/console/debugger", get(debugger_snapshot))
         .route("/v1/console/saved-queries", post(create_saved_query))
+        .route("/v1/console/saved-queries/{id}", patch(update_saved_query))
         .route("/v1/console/dashboards", post(create_dashboard))
+        .route("/v1/console/dashboards/{id}", patch(update_dashboard))
         .route("/v1/console/alerts", post(create_alert))
         .route(
             "/v1/console/analytics/{kind}/{id}",
@@ -85,6 +88,24 @@ async fn create_dashboard(
         StatusCode::CREATED,
         Json(store.create_dashboard(session, body).await?),
     ))
+}
+async fn update_saved_query(
+    State(store): State<Store>,
+    Path(id): Path<String>,
+    headers: HeaderMap,
+    Json(body): Json<UpdateSavedQueryRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let session = bearer_session(&headers)?;
+    Ok(Json(store.update_saved_query(session, &id, body).await?))
+}
+async fn update_dashboard(
+    State(store): State<Store>,
+    Path(id): Path<String>,
+    headers: HeaderMap,
+    Json(body): Json<UpdateDashboardRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let session = bearer_session(&headers)?;
+    Ok(Json(store.update_dashboard(session, &id, body).await?))
 }
 async fn create_alert(
     State(store): State<Store>,

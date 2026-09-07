@@ -22,6 +22,7 @@ type RequestOptions = {
 export class ChillApi {
   private readonly baseUrl: string;
   private readonly userSession: string;
+  private queryTail: Promise<void> = Promise.resolve();
 
   constructor(baseUrl: string, userSession: string) {
     this.baseUrl = baseUrl;
@@ -37,10 +38,12 @@ export class ChillApi {
     environmentId: string,
     plan: Record<string, unknown>,
   ): Promise<QueryResult> {
-    return this.request("/v1/query", {
+    const run = this.queryTail.then(() => this.request<QueryResult>("/v1/query", {
       method: "POST",
       body: { project_id: projectId, environment_id: environmentId, plan },
-    });
+    }));
+    this.queryTail = run.then(() => undefined, () => undefined);
+    return run;
   }
 
   analytics(projectId: string, environmentId: string): Promise<AnalyticsWorkspace> {
@@ -55,8 +58,16 @@ export class ChillApi {
     return this.request("/v1/console/saved-queries", { method: "POST", body });
   }
 
+  updateSavedQuery(id: string, body: { name: string; description: string; plan: Record<string, unknown>; visualization: SavedQuery["visualization"] }): Promise<SavedQuery> {
+    return this.request(`/v1/console/saved-queries/${encodeURIComponent(id)}`, { method: "PATCH", body });
+  }
+
   createDashboard(body: { project_id: string; environment_id: string; name: string; description: string; sharing: Dashboard["sharing"]; layout: Dashboard["layout"] }): Promise<Dashboard> {
     return this.request("/v1/console/dashboards", { method: "POST", body });
+  }
+
+  updateDashboard(id: string, body: { name: string; description: string; sharing: Dashboard["sharing"]; layout: Dashboard["layout"] }): Promise<Dashboard> {
+    return this.request(`/v1/console/dashboards/${encodeURIComponent(id)}`, { method: "PATCH", body });
   }
 
   createAlert(body: { project_id: string; environment_id: string; saved_query_id: string; name: string; operator: AnalyticsAlert["operator"]; threshold: number; schedule_minutes: number }): Promise<AnalyticsAlert> {
