@@ -26,6 +26,23 @@ updates:
     commit-message:
       prefix: "build(rust)"
 
+  - package-ecosystem: gradle
+    directories:
+      - /sdk/android
+      - /sdk/android/android
+      - /sdk/android/core
+      - /sdk/android/samples
+    schedule:
+      interval: monthly
+      time: "10:20"
+      timezone: America/Los_Angeles
+    open-pull-requests-limit: 1
+    groups:
+      android-packages:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(android)"
+
   - package-ecosystem: swift
     directory: /sdk/swift
     schedule:
