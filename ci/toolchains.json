@@ -4,9 +4,9 @@
     "xcode": "27.0"
   },
   "android": {
-    "agp": "9.2.1",
+    "agp": "9.4.0",
     "compile_sdk": 37,
-    "gradle": "9.5.0",
+    "gradle": "9.7.1",
     "kotlin": "2.4.10",
     "min_sdk": 26
   },
