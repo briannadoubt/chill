@@ -249,6 +249,37 @@ def validate_toolchains() -> list[str]:
     image = toolchains["swift"]["linux_image"]
     if "@sha256:" not in image or len(image.rsplit("@sha256:", 1)[1]) != 64:
         errors.append("Swift Linux image must be pinned by SHA-256 digest")
+
+    android = toolchains["android"]
+    android_root = ROOT / "sdk" / "android"
+    root_build = (android_root / "build.gradle.kts").read_text(encoding="utf-8")
+    if f'id("com.android.library") version "{android["agp"]}"' not in root_build:
+        errors.append("Android toolchain manifest and Gradle plugin version disagree")
+    kotlin_version = android["kotlin"]
+    for plugin in ("org.jetbrains.kotlin.jvm", "org.jetbrains.kotlin.plugin.compose"):
+        if f'id("{plugin}") version "{kotlin_version}"' not in root_build:
+            errors.append(
+                f"Android toolchain manifest and {plugin} version disagree"
+            )
+    wrapper = (
+        android_root / "gradle" / "wrapper" / "gradle-wrapper.properties"
+    ).read_text(encoding="utf-8")
+    if f"gradle-{android['gradle']}-bin.zip" not in wrapper:
+        errors.append("Android toolchain manifest and Gradle wrapper disagree")
+    if "distributionSha256Sum=" not in wrapper:
+        errors.append("Gradle distribution must be pinned by SHA-256 checksum")
+    for module in ("android", "samples"):
+        build = (android_root / module / "build.gradle.kts").read_text(
+            encoding="utf-8"
+        )
+        if f"compileSdk = {android['compile_sdk']}" not in build:
+            errors.append(
+                f"Android toolchain manifest and :{module} compileSdk disagree"
+            )
+        if f"minSdk = {android['min_sdk']}" not in build:
+            errors.append(
+                f"Android toolchain manifest and :{module} minSdk disagree"
+            )
     return errors
 
 
