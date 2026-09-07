@@ -28,11 +28,14 @@ ENV CHILL_VERSION=${CHILL_VERSION} \
     CARGO_PROFILE_RELEASE_LTO=false
 
 COPY --from=planner /src/backend/recipe.json recipe.json
+# chill-normalize path-depends on ../../../sdk/rust, which escapes the backend
+# workspace root, so cargo-chef cannot reconstruct it from the recipe skeleton.
+# The real manifest has to be present before the dependency layer is cooked.
+COPY sdk/rust/ /src/sdk/rust/
 RUN cargo chef cook --locked --release --recipe-path recipe.json
 
 # The control-plane crate embeds repository-owned policies and migrations at
 # compile time, so preserve the repository layout for the source-only layer.
-COPY sdk/rust/ /src/sdk/rust/
 COPY backend/ ./
 COPY policies/ /src/policies/
 COPY schemas/behavior/v1/envelope.schema.json /src/schemas/behavior/v1/envelope.schema.json
