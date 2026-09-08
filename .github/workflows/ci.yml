@@ -85,8 +85,33 @@ jobs:
         working-directory: backend
         run: cargo fmt --all -- --check
 
-  backend-rust-quality:
-    name: Rust backend test and clippy
+  backend-rust-clippy:
+    name: Rust backend clippy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Rust
+        run: rustup toolchain install 1.95.0 --profile minimal --component clippy,rustfmt
+
+      # Clippy builds --all-features while the test job builds default features,
+      # so their artifacts do not overlap. Separate cache keys stop the two
+      # feature sets from evicting each other, and separate jobs keep them
+      # running in parallel.
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: backend
+          shared-key: backend-clippy
+
+      - name: Run Clippy
+        working-directory: backend
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+
+  backend-rust-test:
+    name: Rust backend test
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -100,10 +125,7 @@ jobs:
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: backend
-          shared-key: backend
-      - name: Run Clippy
-        working-directory: backend
-        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+          shared-key: backend-test
 
       - name: Run tests
         working-directory: backend
@@ -124,7 +146,8 @@ jobs:
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: backend
-          shared-key: backend
+          shared-key: backend-deny
+
       - name: Install cargo-deny
         uses: taiki-e/install-action@d438492cf8a250514fa2d34b30bc3c0dc37c65ff # v2.87.8
         with:
