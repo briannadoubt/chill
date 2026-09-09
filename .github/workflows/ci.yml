@@ -105,6 +105,7 @@ jobs:
         with:
           workspaces: backend
           shared-key: backend-clippy
+          save-if: ${{ github.event_name == 'push' }}
 
       - name: Run Clippy
         working-directory: backend
@@ -126,6 +127,7 @@ jobs:
         with:
           workspaces: backend
           shared-key: backend-test
+          save-if: ${{ github.event_name == 'push' }}
 
       - name: Run tests
         working-directory: backend
@@ -147,6 +149,7 @@ jobs:
         with:
           workspaces: backend
           shared-key: backend-deny
+          save-if: ${{ github.event_name == 'push' }}
 
       - name: Install cargo-deny
         uses: taiki-e/install-action@d438492cf8a250514fa2d34b30bc3c0dc37c65ff # v2.87.8
@@ -173,6 +176,7 @@ jobs:
         with:
           workspaces: backend
           shared-key: backend-integration
+          save-if: ${{ github.event_name == 'push' }}
       - name: Run integration suite
         run: scripts/test-backend-integration.sh
 
@@ -192,6 +196,7 @@ jobs:
         with:
           workspaces: backend
           shared-key: backend-release
+          save-if: ${{ github.event_name == 'push' }}
 
       - name: Exercise bounded query plans in release mode
         run: scripts/run-query-benchmarks.sh
@@ -216,7 +221,10 @@ jobs:
           tags: chill/backend:ci
           build-args: CARGO_BUILD_JOBS=4
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Only main writes layers. A pull request that also exported a full
+          # mode=max layer set pushed the repository past the 10 GB Actions cache
+          # limit, evicting the very layers the next run needed.
+          cache-to: ${{ github.event_name == 'push' && 'type=gha,mode=max' || '' }}
 
   console:
     name: Console client
@@ -261,7 +269,10 @@ jobs:
           push: false
           tags: chill/console:ci
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Only main writes layers. A pull request that also exported a full
+          # mode=max layer set pushed the repository past the 10 GB Actions cache
+          # limit, evicting the very layers the next run needed.
+          cache-to: ${{ github.event_name == 'push' && 'type=gha,mode=max' || '' }}
 
   web-sdk:
     name: Browser SDK contract and budgets
@@ -339,6 +350,7 @@ jobs:
         with:
           workspaces: sdk/rust
           shared-key: portable-rust
+          save-if: ${{ github.event_name == 'push' }}
       - name: Install Linux cross compiler
         run: |
           sudo apt-get update
@@ -405,6 +417,7 @@ jobs:
         with:
           workspaces: sdk/tauri
           shared-key: tauri
+          save-if: ${{ github.event_name == 'push' }}
       - name: Install Tauri system dependencies
         run: |
           sudo apt-get update
